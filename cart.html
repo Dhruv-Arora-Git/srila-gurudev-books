@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Cart - Gurudev Books</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header id="main-header">
+    <div class="header-content">
+      <a href="index.html" class="logo"><span class="logo-icon">&#128214;</span> Gurudev Books</a>
+      <nav>
+        <a href="index.html">Books</a>
+        <a href="track.html">Track Order</a>
+        <a href="admin.html">Admin</a>
+        <a href="cart.html">Cart <span id="cart-badge" class="cart-badge" style="display:none;">0</span></a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container cart-page">
+    <div class="page-title">
+      <h1>Your Cart</h1>
+    </div>
+    <div id="cart-items"></div>
+    <div id="cart-summary" style="display:none;" class="cart-summary">
+      <div class="summary-row"><span>Subtotal</span><span id="subtotal">Rs. 0</span></div>
+      <div class="summary-row"><span>Delivery Charge</span><span>Rs. 100</span></div>
+      <div class="summary-row"><span>Total</span><span id="total">Rs. 0</span></div>
+      <a href="checkout.html" style="text-decoration:none;"><button class="checkout-btn">Proceed to Checkout</button></a>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Gurudev Books Store. All rights reserved. | <a href="track.html">Track Your Order</a></p>
+  </footer>
+
+  <a href="https://wa.me/918307566768" target="_blank" class="whatsapp-float" title="Chat on WhatsApp">
+    <span class="whatsapp-label">Have a Query? Chat on WhatsApp</span><svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M16.004 0C7.165 0 .003 7.161.001 15.999c-.001 2.819.736 5.571 2.138 7.998L.012 32l8.186-2.09a16.04 16.04 0 007.806 1.99h.006C24.838 31.9 32 24.738 32 15.999 32 7.161 24.838 0 16.004 0zm0 29.3a13.36 13.36 0 01-7.02-1.99l-.503-.3-5.22 1.332 1.393-5.093-.328-.523A13.27 13.27 0 012.6 15.999c0-7.39 6.015-13.4 13.404-13.4 7.39 0 13.398 6.01 13.398 13.4 0 7.39-5.998 13.301-13.398 13.301zm7.338-10.035c-.403-.2-2.378-1.173-2.747-1.308-.37-.134-.639-.2-.908.2s-1.042 1.308-1.278 1.576c-.236.268-.472.3-.875.1-.403-.2-1.704-.628-3.246-2.002-1.199-1.07-2.009-2.39-2.244-2.793-.236-.403-.025-.62.177-.82.182-.18.403-.47.604-.705.2-.236.268-.403.403-.671.134-.268.067-.503-.034-.705-.1-.2-1.008-2.428-1.378-3.328-.37-.9-.746-.774-1.008-.785-.268-.01-.57-.012-.872-.012-.302 0-.79.113-1.203.57-.403.457-1.538 1.504-1.538 3.668 0 2.164 1.572 4.26 1.791 4.562.219.302 3.093 4.723 7.491 6.617 1.05.453 1.868.723 2.507.926 1.051.334 2.006.287 2.761.175.842-.126 2.378-.973 2.714-1.912.336-.94.336-1.744.236-1.912-.1-.168-.37-.268-.773-.47z"/></svg>
+  </a>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="js/config.js"></script>
+  <script src="js/books.js"></script>
+  <script src="js/cart.js"></script>
+  <script>
+    function renderCart() {
+      const cart = getCart();
+      const container = document.getElementById('cart-items');
+      const summary = document.getElementById('cart-summary');
+
+      if (cart.length === 0) {
+        container.innerHTML = `
+          <div class="empty-cart">
+            <div class="empty-cart-icon">&#128218;</div>
+            <h2>Your cart is empty</h2>
+            <p>Browse our divine collection and add some books!</p>
+            <a href="index.html">Continue Shopping &rarr;</a>
+          </div>
+        `;
+        summary.style.display = 'none';
+        return;
+      }
+
+      container.innerHTML = cart.map(item => {
+        const book = BOOKS.find(b => b.id === item.bookId);
+        if (!book) return '';
+        return `
+          <div class="cart-item">
+            <img src="${book.image}" alt="${book.title}" class="cart-item-image" onerror="this.style.background='linear-gradient(145deg, #f8f4ec, #f0e8d8)';" />
+            <div class="cart-item-details">
+              <h3 class="cart-item-title">${book.title}</h3>
+              <p class="cart-item-price">Rs. ${book.price}</p>
+            </div>
+            <div class="quantity-control">
+              <button class="quantity-btn" onclick="updateQty(${book.id}, -1)">&#8722;</button>
+              <input type="text" class="quantity-input" value="${item.quantity}" readonly />
+              <button class="quantity-btn" onclick="updateQty(${book.id}, 1)">+</button>
+            </div>
+            <strong style="font-size:1.15rem;color:var(--accent);">Rs. ${book.price * item.quantity}</strong>
+            <button onclick="removeItem(${book.id})" style="background:none;border:none;cursor:pointer;font-size:1.5rem;color:var(--danger);transition:var(--transition-fast);padding:0.5rem;" title="Remove">&#10005;</button>
+          </div>
+        `;
+      }).join('');
+
+      const subtotal = getCartTotal();
+      document.getElementById('subtotal').textContent = `Rs. ${subtotal}`;
+      document.getElementById('total').textContent = `Rs. ${subtotal + CONFIG.DELIVERY_CHARGE}`;
+      summary.style.display = 'block';
+    }
+
+    function updateQty(bookId, delta) {
+      const cart = getCart();
+      const item = cart.find(i => i.bookId === bookId);
+      if (item) {
+        const newQty = item.quantity + delta;
+        updateQuantity(bookId, newQty);
+        renderCart();
+      }
+    }
+
+    function removeItem(bookId) {
+      removeFromCart(bookId);
+      renderCart();
+    }
+
+    // Load books dynamically before rendering cart
+    async function initCart() {
+      const container = document.getElementById('cart-items');
+      container.innerHTML = '<div class="spinner"></div>';
+      await fetchBooks();
+      renderCart();
+    }
+    initCart();
+  </script>
+</body>
+</html>

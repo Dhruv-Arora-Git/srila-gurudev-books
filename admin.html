@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard - Gurudev Books</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .auth-guard {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 60vh;
+    }
+
+    /* Stock Status Tags */
+    .stock-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 50px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+    
+    .stock-in {
+      background-color: #DCFCE7 !important;
+      color: #15803D !important;
+      border-color: #BBF7D0 !important;
+    }
+    
+    .stock-low {
+      background-color: #FEF3C7 !important;
+      color: #D97706 !important;
+      border-color: #FDE68A !important;
+    }
+    
+    .stock-out {
+      background-color: #FEE2E2 !important;
+      color: #DC2626 !important;
+      border-color: #FCA5A5 !important;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      padding: 1.25rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid rgba(74, 21, 37, 0.05);
+      text-align: center;
+    }
+
+    .stat-number {
+      font-family: 'Lora', serif;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--maroon);
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.35rem;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      font-weight: 500;
+    }
+
+    .stat-card.pending .stat-number { color: var(--warning); }
+    .stat-card.verified .stat-number { color: var(--success); }
+    .stat-card.shipped .stat-number { color: var(--purple); }
+    .stat-card.revenue .stat-number { color: var(--saffron-dark); font-size: 1.6rem; }
+
+    .search-bar {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 200px;
+      padding: 0.75rem 1rem;
+      border: 1.5px solid #E7E5E4;
+      border-radius: var(--radius-sm);
+      font-size: 0.95rem;
+      font-family: 'Inter', sans-serif;
+      transition: var(--transition-fast);
+      background: white;
+      line-height: 1.5;
+    }
+
+    .search-input:focus {
+      border-color: var(--saffron);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.1);
+    }
+
+    .search-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .user-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .user-group-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: var(--ivory);
+      border-radius: var(--radius-sm);
+      margin-bottom: 0.75rem;
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+
+    .user-group-header:hover {
+      background: var(--ivory-dark);
+    }
+
+    .user-phone {
+      font-weight: 600;
+      color: var(--maroon);
+      font-size: 0.95rem;
+    }
+
+    .user-name {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
+
+    .user-order-count {
+      margin-left: auto;
+      background: var(--saffron-lighter);
+      color: var(--saffron-dark);
+      padding: 0.2rem 0.6rem;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .user-orders {
+      padding-left: 0.5rem;
+      border-left: 2px solid var(--ivory-dark);
+      margin-left: 0.75rem;
+    }
+
+    .order-card-admin {
+      background: var(--card-bg);
+      padding: 1.25rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 0.75rem;
+      border: 1px solid rgba(74, 21, 37, 0.05);
+      transition: var(--transition);
+    }
+
+    .order-card-admin:hover {
+      box-shadow: var(--shadow);
+    }
+
+    .order-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .order-id-badge {
+      font-family: 'Lora', serif;
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--maroon);
+    }
+
+    .order-date-small {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    .order-address {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.65rem;
+      padding: 0.5rem 0.75rem;
+      background: var(--ivory);
+      border-radius: var(--radius-sm);
+      line-height: 1.6;
+    }
+
+    .order-items-mini {
+      margin-bottom: 0.75rem;
+    }
+
+    .order-item-mini {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.4rem 0;
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      border-bottom: 1px dashed var(--ivory-dark);
+      line-height: 1.5;
+    }
+
+    .order-item-mini:last-child {
+      border-bottom: none;
+    }
+
+    .order-total-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      font-weight: 600;
+      color: var(--maroon);
+      border-top: 1px solid var(--ivory-dark);
+      margin-top: 0.35rem;
+    }
+
+    .proof-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      margin-top: 0.65rem;
+      padding: 0.45rem 0.8rem;
+      background: var(--saffron-lighter);
+      border: none;
+      border-radius: var(--radius-sm);
+      color: var(--saffron-dark);
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: var(--transition-fast);
+      font-family: 'Inter', sans-serif;
+    }
+
+    .proof-btn:hover {
+      background: var(--saffron-light);
+    }
+
+    .order-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.85rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .status-select-admin {
+      padding: 0.55rem 0.8rem;
+      border: 1.5px solid #E7E5E4;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      background: white;
+      cursor: pointer;
+      transition: var(--transition-fast);
+      font-family: 'Inter', sans-serif;
+    }
+
+    .status-select-admin:focus {
+      border-color: var(--saffron);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.1);
+    }
+
+    .tracking-input-admin {
+      flex: 1;
+      min-width: 150px;
+      padding: 0.55rem 0.8rem;
+      border: 1.5px solid #E7E5E4;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-family: 'Inter', sans-serif;
+      transition: var(--transition-fast);
+    }
+
+    .tracking-input-admin:focus {
+      border-color: var(--saffron);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.1);
+    }
+
+    .update-btn-admin {
+      background: linear-gradient(135deg, var(--saffron), var(--saffron-dark));
+      color: white;
+      border: none;
+      padding: 0.55rem 1.1rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: var(--transition);
+      font-weight: 600;
+      font-size: 0.88rem;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .update-btn-admin:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(217, 119, 6, 0.25);
+    }
+
+    .proof-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .proof-modal.active {
+      display: flex;
+    }
+
+    .proof-modal img {
+      max-width: 90%;
+      max-height: 85vh;
+      border-radius: var(--radius);
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .proof-modal-close {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      background: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 1.25rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition-fast);
+      box-shadow: var(--shadow);
+    }
+
+    .proof-modal-close:hover {
+      transform: scale(1.1);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .empty-state-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.4;
+    }
+
+    @media (max-width: 768px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .search-bar {
+        flex-direction: column;
+      }
+
+      .search-input {
+        min-width: 100%;
+      }
+
+      .order-actions {
+        flex-direction: column;
+      }
+
+      .tracking-input-admin {
+        width: 100%;
+      }
+
+      .status-select-admin {
+        width: 100%;
+      }
+
+      .update-btn-admin {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header id="main-header">
+    <div class="header-content">
+      <a href="index.html" class="logo"><span class="logo-icon">&#128214;</span> Gurudev Books</a>
+      <nav>
+        <a href="index.html">Books</a>
+        <a href="track.html">Track Order</a>
+        <a href="admin.html">Admin</a>
+        <a href="cart.html">Cart <span id="cart-badge" class="cart-badge" style="display:none;">0</span></a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <div id="login-section" class="auth-guard">
+      <div class="admin-login">
+        <h2>Admin Login</h2>
+        <form onsubmit="adminLogin(event)">
+          <div class="form-group">
+            <label for="admin-email">Email Address</label>
+            <input type="email" id="admin-email" required placeholder="admin@example.com" />
+          </div>
+          <div class="form-group">
+            <label for="admin-password">Password</label>
+            <input type="password" id="admin-password" required placeholder="Enter password" />
+          </div>
+          <button type="submit" class="checkout-btn">Login</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="dashboard-section" style="display:none;">
+      <div class="dashboard-header">
+        <div>
+          <h1>Admin Dashboard</h1>
+          <p style="color:var(--text-muted);font-size:0.85rem;margin-top:0.25rem;" id="admin-email-display"></p>
+        </div>
+        <button onclick="adminLogout()" class="logout-btn">Logout</button>
+      </div>
+
+      <!-- Dashboard Navigation Tabs -->
+      <div class="dashboard-tabs" style="display:flex;gap:1.5rem;margin-bottom:1.5rem;border-bottom:2px solid var(--ivory-dark);padding-bottom:0.25rem;">
+        <button class="tab-btn active" id="tab-btn-orders" onclick="switchTab('orders')" style="background:none;border:none;font-weight:600;font-size:1.1rem;color:var(--maroon);cursor:pointer;padding-bottom:0.5rem;border-bottom:2px solid var(--maroon);transition:var(--transition-fast);font-family:'Lora',serif;">Orders</button>
+        <button class="tab-btn" id="tab-btn-inventory" onclick="switchTab('inventory')" style="background:none;border:none;font-weight:600;font-size:1.1rem;color:var(--text-muted);cursor:pointer;padding-bottom:0.5rem;transition:var(--transition-fast);font-family:'Lora',serif;">Manage Inventory</button>
+      </div>
+
+      <!-- Orders Tab View -->
+      <div id="orders-tab-view">
+        <div class="stats-grid" id="stats-grid"></div>
+
+        <div class="search-bar" style="display:flex;gap:0.75rem;margin-bottom:1.5rem;align-items:center;flex-wrap:wrap;">
+          <input type="text" class="search-input" id="search-input" placeholder="Search by name, phone number, or address..." oninput="handleSearch()" style="margin-bottom:0;" />
+          <button class="proof-btn" onclick="exportOrdersToCSV()" style="margin-top:0;padding:0.75rem 1.25rem;white-space:nowrap;">&#128196; Export CSV</button>
+        </div>
+
+        <div class="filters">
+          <button class="filter-btn active" data-filter="all" onclick="setFilter('all')">All</button>
+          <button class="filter-btn" data-filter="Payment Pending" onclick="setFilter('Payment Pending')">Payment Pending</button>
+          <button class="filter-btn" data-filter="Payment Verified" onclick="setFilter('Payment Verified')">Payment Verified</button>
+          <button class="filter-btn" data-filter="Shipped" onclick="setFilter('Shipped')">Shipped</button>
+          <button class="filter-btn" data-filter="Delivered" onclick="setFilter('Delivered')">Delivered</button>
+        </div>
+
+        <div id="orders-container"></div>
+      </div>
+
+      <!-- Inventory Tab View -->
+      <div id="inventory-tab-view" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;">
+          <h2 style="font-size:1.5rem;color:var(--maroon);">Book Inventory</h2>
+          <button class="update-btn-admin" onclick="openBookModal()">+ Add New Book</button>
+        </div>
+        <div id="inventory-container"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Payment Proof Viewer Modal -->
+  <div id="proof-modal" class="proof-modal" onclick="closeProofModal(event)">
+    <button class="proof-modal-close" onclick="closeProofModal()">&times;</button>
+    <img id="proof-image" src="" alt="Payment Proof" />
+  </div>
+
+  <!-- Book Add/Edit Modal -->
+  <div id="book-modal" class="proof-modal" onclick="closeBookModal(event)">
+    <div style="background:white;padding:2rem;border-radius:var(--radius);max-width:550px;width:100%;box-shadow:var(--shadow-lg);position:relative;animation:fadeIn 0.2s ease;max-height:90vh;overflow-y:auto;" onclick="event.stopPropagation()">
+      <button class="proof-modal-close" onclick="closeBookModal()" style="top:1rem;right:1rem;">&times;</button>
+      <h2 id="book-modal-title" style="margin-bottom:1.5rem;color:var(--maroon);font-family:'Lora',serif;">Add New Book</h2>
+      <form id="book-form" onsubmit="saveBook(event)">
+        <input type="hidden" id="edit-book-id" value="" />
+        
+        <div class="form-group" style="margin-bottom:1rem;">
+          <label for="book-title" style="display:block;font-size:0.85rem;font-weight:600;margin-bottom:0.35rem;">Book Title</label>
+          <input type="text" id="book-title" required placeholder="Enter book title" style="width:100%;padding:0.65rem 0.8rem;border:1.5px solid #E7E5E4;border-radius:var(--radius-sm);font-size:0.9rem;" />
+        </div>
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+          <div class="form-group">
+            <label for="book-price" style="display:block;font-size:0.85rem;font-weight:600;margin-bottom:0.35rem;">Price (Rs.)</label>
+            <input type="number" id="book-price" required min="0" placeholder="Price" style="width:100%;padding:0.65rem 0.8rem;border:1.5px solid #E7E5E4;border-radius:var(--radius-sm);font-size:0.9rem;" />
+          </div>
+          <div class="form-group">
+            <label for="book-stock" style="display:block;font-size:0.85rem;font-weight:600;margin-bottom:0.35rem;">Stock Quantity</label>
+            <input type="number" id="book-stock" required min="0" placeholder="Stock" style="width:100%;padding:0.65rem 0.8rem;border:1.5px solid #E7E5E4;border-radius:var(--radius-sm);font-size:0.9rem;" />
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:1rem;">
+          <label for="book-desc" style="display:block;font-size:0.85rem;font-weight:600;margin-bottom:0.35rem;">Description</label>
+          <textarea id="book-desc" required placeholder="Enter book description..." style="width:100%;height:90px;padding:0.65rem 0.8rem;border:1.5px solid #E7E5E4;border-radius:var(--radius-sm);resize:vertical;font-size:0.9rem;font-family:inherit;line-height:1.5;"></textarea>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+          <div class="form-group">
+            <label for="book-type" style="display:block;font-size:0.85rem;font-weight:600;margin-bottom:0.35rem;">Binding Type</label>
+            <select id="book-type" style="width:100%;padding:0.65rem 0.8rem;border:1.5px solid #E7E5E4;border-radius:var(--radius-sm);font-size:0.9rem;background:white;">
+              <option value="Softbound">Softbound</option>
+              <option value="Hardbound">Hardbound</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="book-pages" style="display:block;font-size:0.85rem;font-weight:600;margin-bottom:0.35rem;">Pages</label>
+            <input type="number" id="book-pages" required min="0" placeholder="e.g. 215" style="width:100%;padding:0.65rem 0.8rem;border:1.5px solid #E7E5E4;border-radius:var(--radius-sm);font-size:0.9rem;" />
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:1rem;">
+          <label for="book-dimensions" style="display:block;font-size:0.85rem;font-weight:600;margin-bottom:0.35rem;">Dimensions (Optional)</label>
+          <input type="text" id="book-dimensions" placeholder="e.g. 7.5&quot; x 10.5&quot;" style="width:100%;padding:0.65rem 0.8rem;border:1.5px solid #E7E5E4;border-radius:var(--radius-sm);font-size:0.9rem;" />
+        </div>
+
+        <div class="form-group" style="margin-bottom:1.5rem;">
+          <label for="book-cover-upload" style="display:block;font-size:0.85rem;font-weight:600;margin-bottom:0.35rem;">Upload Cover Image</label>
+          <input type="file" id="book-cover-upload" accept="image/*" style="width:100%;font-size:0.85rem;" />
+          <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.25rem;">For new books: required. For editing: leave blank to keep current cover.</p>
+        </div>
+
+        <button type="submit" id="save-book-btn" class="checkout-btn" style="width:100%;padding:0.75rem;font-weight:600;">Save Book</button>
+      </form>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2026 Gurudev Books Store. All rights reserved.</p>
+  </footer>
+
+  <a href="https://wa.me/918307566768" target="_blank" class="whatsapp-float" title="Chat on WhatsApp">
+    <span class="whatsapp-label">Have a Query? Chat on WhatsApp</span><svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M16.004 0C7.165 0 .003 7.161.001 15.999c-.001 2.819.736 5.571 2.138 7.998L.012 32l8.186-2.09a16.04 16.04 0 007.806 1.99h.006C24.838 31.9 32 24.738 32 15.999 32 7.161 24.838 0 16.004 0zm0 29.3a13.36 13.36 0 01-7.02-1.99l-.503-.3-5.22 1.332 1.393-5.093-.328-.523A13.27 13.27 0 012.6 15.999c0-7.39 6.015-13.4 13.404-13.4 7.39 0 13.398 6.01 13.398 13.4 0 7.39-5.998 13.301-13.398 13.301zm7.338-10.035c-.403-.2-2.378-1.173-2.747-1.308-.37-.134-.639-.2-.908.2s-1.042 1.308-1.278 1.576c-.236.268-.472.3-.875.1-.403-.2-1.704-.628-3.246-2.002-1.199-1.07-2.009-2.39-2.244-2.793-.236-.403-.025-.62.177-.82.182-.18.403-.47.604-.705.2-.236.268-.403.403-.671.134-.268.067-.503-.034-.705-.1-.2-1.008-2.428-1.378-3.328-.37-.9-.746-.774-1.008-.785-.268-.01-.57-.012-.872-.012-.302 0-.79.113-1.203.57-.403.457-1.538 1.504-1.538 3.668 0 2.164 1.572 4.26 1.791 4.562.219.302 3.093 4.723 7.491 6.617 1.05.453 1.868.723 2.507.926 1.051.334 2.006.287 2.761.175.842-.126 2.378-.973 2.714-1.912.336-.94.336-1.744.236-1.912-.1-.168-.37-.268-.773-.47z"/></svg>
+  </a>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="js/config.js"></script>
+  <script src="js/books.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/admin.js"></script>
+  <script>
+    // Header remains permanently scrolled (solid maroon background) on admin page
+  </script>
+</body>
+</html>

@@ -148,7 +148,7 @@ function renderDashboard() {
 function renderStats() {
   const orders = getFilteredOrders();
   const total = orders.length;
-  const pending = orders.filter(o => o.status === 'Payment Pending').length;
+  const pending = orders.filter(o => o.status === 'Payment Verification is Pending').length;
   const verified = orders.filter(o => o.status === 'Payment Verified').length;
   const shipped = orders.filter(o => o.status === 'Shipped').length;
   const delivered = orders.filter(o => o.status === 'Delivered').length;
@@ -161,7 +161,7 @@ function renderStats() {
     </div>
     <div class="stat-card pending">
       <div class="stat-number">${pending}</div>
-      <div class="stat-label">Payment Pending</div>
+      <div class="stat-label">Payment Verification is Pending</div>
     </div>
     <div class="stat-card verified">
       <div class="stat-number">${verified}</div>
@@ -304,12 +304,12 @@ function renderOrderCard(order) {
       <div class="order-actions">
         <select class="status-select-admin" id="status-${order.id}">
           <option value="Order Placed" ${order.status === 'Order Placed' ? 'selected' : ''}>Order Placed</option>
-          <option value="Payment Pending" ${order.status === 'Payment Pending' ? 'selected' : ''}>Payment Pending</option>
+          <option value="Payment Verification is Pending" ${order.status === 'Payment Verification is Pending' ? 'selected' : ''}>Payment Verification is Pending</option>
           <option value="Payment Verified" ${order.status === 'Payment Verified' ? 'selected' : ''}>Payment Verified</option>
           <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
           <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
         </select>
-        <input type="text" class="tracking-input-admin" id="tracking-${order.id}" placeholder="Indian Post Tracking #" value="${order.tracking_number || ''}" />
+        <input type="text" class="tracking-input-admin" id="tracking-${order.id}" placeholder="Tracking #" value="${order.tracking_number || ''}" />
         <button class="update-btn-admin" onclick="updateOrder('${order.id}')">Update</button>
       </div>
     </div>

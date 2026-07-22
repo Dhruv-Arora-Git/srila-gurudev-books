@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS orders (
   phone text NOT NULL,
   address text NOT NULL,
   total_amount integer NOT NULL,
-  status text NOT NULL DEFAULT 'Payment Pending',
+  status text NOT NULL DEFAULT 'Payment Verification is Pending',
   payment_proof_url text,
   tracking_number text,
   created_at timestamptz DEFAULT now(),
@@ -239,7 +239,7 @@ DECLARE
 BEGIN
   -- 1. Insert the order
   INSERT INTO orders (customer_name, phone, address, total_amount, status, payment_proof_url)
-  VALUES (cust_name, cust_phone, cust_address, total_amt, 'Payment Pending', proof_url)
+  VALUES (cust_name, cust_phone, cust_address, total_amt, 'Payment Verification is Pending', proof_url)
   RETURNING id INTO new_order_id;
 
   -- 2. Insert items and check/decrement stock

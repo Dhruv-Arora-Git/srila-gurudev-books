@@ -57,7 +57,7 @@ async function trackOrders(event) {
           <span>Total</span>
           <span>Rs. ${order.total_amount}</span>
         </div>
-        ${order.tracking_number ? `<p style="margin-top:1.25rem;padding:0.75rem 1rem;background:var(--purple-light);border-radius:var(--radius-sm);line-height:1.5;"><strong>Indian Post Tracking:</strong> <code style="font-size:1.05rem;color:var(--purple);font-weight:600;">${order.tracking_number}</code></p>` : ''}
+        ${order.tracking_number ? `<p style="margin-top:1.25rem;padding:0.75rem 1rem;background:var(--purple-light);border-radius:var(--radius-sm);line-height:1.5;"><strong>Tracking Number:</strong> <code style="font-size:1.05rem;color:var(--purple);font-weight:600;">${order.tracking_number}</code></p>` : ''}
       </div>
     `).join('');
 

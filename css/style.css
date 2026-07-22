@@ -1353,7 +1353,8 @@ nav a:hover::after {
   color: var(--info);
 }
 
-.status-payment-pending {
+.status-payment-pending,
+.status-payment-verification-is-pending {
   background: var(--warning-light);
   color: var(--warning);
   animation: pulse 2s infinite;

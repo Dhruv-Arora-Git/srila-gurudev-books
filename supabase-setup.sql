@@ -31,9 +31,13 @@ CREATE TABLE IF NOT EXISTS orders (
   status text NOT NULL DEFAULT 'Payment Verification is Pending',
   payment_proof_url text,
   tracking_number text,
+  tracking_link text, -- Tracking URL
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()
 );
+
+-- Ensure tracking_link column exists if table was already created
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS tracking_link text;
 
 -- 3. Create Order Items Table
 CREATE TABLE IF NOT EXISTS order_items (
@@ -181,6 +185,7 @@ CREATE TRIGGER trg_restore_stock
 
 
 -- 8. Secure RPC Function for Customer Order Tracking
+DROP FUNCTION IF EXISTS get_customer_orders_by_phone(text);
 CREATE OR REPLACE FUNCTION get_customer_orders_by_phone(customer_phone text)
 RETURNS TABLE (
   id uuid,
@@ -190,6 +195,7 @@ RETURNS TABLE (
   total_amount integer,
   status text,
   tracking_number text,
+  tracking_link text, -- Added tracking link to output table
   created_at timestamptz,
   order_items jsonb
 ) SECURITY DEFINER AS $$
@@ -203,6 +209,7 @@ BEGIN
     o.total_amount,
     o.status,
     o.tracking_number,
+    o.tracking_link, -- Added to select
     o.created_at,
     coalesce(
       jsonb_agg(
@@ -259,3 +266,8 @@ END;
 $$ LANGUAGE plpgsql;
 
 GRANT EXECUTE ON FUNCTION create_order_with_items(text, text, text, integer, text, jsonb) TO anon, authenticated;
+
+-- 7. Update old status text to the new standard
+UPDATE orders 
+SET status = 'Payment Verification is Pending' 
+WHERE status = 'Payment Pending';

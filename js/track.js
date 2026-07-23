@@ -7,6 +7,9 @@ async function trackOrders(event) {
     return;
   }
 
+  // Persist the phone number searched in the tracking bar
+  localStorage.setItem('last_tracked_phone', phone);
+
   const resultsDiv = document.getElementById('track-results');
   resultsDiv.innerHTML = '<div class="spinner"></div>';
 
@@ -53,11 +56,25 @@ async function trackOrders(event) {
           <span>Delivery</span>
           <span>Rs. ${CONFIG.DELIVERY_CHARGE}</span>
         </div>
-        <div class="summary-row">
+        <div class="summary-row total-row">
           <span>Total</span>
           <span>Rs. ${order.total_amount}</span>
         </div>
-        ${order.tracking_number ? `<p style="margin-top:1.25rem;padding:0.75rem 1rem;background:var(--purple-light);border-radius:var(--radius-sm);line-height:1.5;"><strong>Tracking Number:</strong> <code style="font-size:1.05rem;color:var(--purple);font-weight:600;">${order.tracking_number}</code></p>` : ''}
+        ${(order.tracking_number || order.tracking_link) ? `
+          <div style="margin-top:1.25rem;padding:1rem 1.25rem;background:var(--purple-light);border-radius:var(--radius);line-height:1.6;border:1px solid rgba(139, 92, 246, 0.1);display:flex;flex-direction:column;gap:0.5rem;">
+            ${order.tracking_number ? `
+              <p style="margin:0;font-size:0.95rem;display:flex;align-items:center;flex-wrap:wrap;gap:0.5rem;">
+                <strong>Tracking Number:</strong> 
+                <code style="font-size:1.05rem;color:var(--purple);font-weight:600;">${order.tracking_number}</code>
+                <button class="copy-track-btn" onclick="copyToClipboard('${order.tracking_number}', this)">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                  Copy
+                </button>
+              </p>
+            ` : ''}
+            ${order.tracking_link ? `<p style="margin:0;font-size:0.95rem;"><strong>Tracking Link:</strong> <a href="${order.tracking_link.trim()}" target="_blank" style="color:var(--purple);font-weight:600;text-decoration:underline;word-break:break-all;margin-left:0.25rem;">${order.tracking_link.trim()}</a></p>` : ''}
+          </div>
+        ` : ''}
       </div>
     `).join('');
 
@@ -65,4 +82,21 @@ async function trackOrders(event) {
     console.error('Track error:', error);
     resultsDiv.innerHTML = '<p style="text-align:center;color:var(--danger);padding:3rem 0;">Error fetching orders. Please try again.</p>';
   }
+}
+
+function copyToClipboard(text, btnElement) {
+  navigator.clipboard.writeText(text).then(() => {
+    const originalHTML = btnElement.innerHTML;
+    btnElement.innerHTML = `
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      Copied!
+    `;
+    btnElement.classList.add('copied');
+    setTimeout(() => {
+      btnElement.innerHTML = originalHTML;
+      btnElement.classList.remove('copied');
+    }, 2000);
+  }).catch(err => {
+    console.error('Copy failed:', err);
+  });
 }

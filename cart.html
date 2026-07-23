@@ -9,7 +9,7 @@
 <body>
   <header id="main-header">
     <div class="header-content">
-      <a href="index.html" class="logo"><span class="logo-icon">&#128214;</span> Gurudev Books</a>
+      <a href="index.html" class="logo"><span class="logo-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--maroon);"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></span> Gurudev Books</a>
       <nav>
         <a href="index.html">Books</a>
         <a href="track.html">Track Order</a>
@@ -21,15 +21,9 @@
 
   <main class="container cart-page">
     <div class="page-title">
-      <h1>Your Cart</h1>
+      <h1>My Shopping Cart</h1>
     </div>
-    <div id="cart-items"></div>
-    <div id="cart-summary" style="display:none;" class="cart-summary">
-      <div class="summary-row"><span>Subtotal</span><span id="subtotal">Rs. 0</span></div>
-      <div class="summary-row"><span>Delivery Charge</span><span>Rs. 100</span></div>
-      <div class="summary-row"><span>Total</span><span id="total">Rs. 0</span></div>
-      <a href="checkout.html" style="text-decoration:none;"><button class="checkout-btn">Proceed to Checkout</button></a>
-    </div>
+    <div id="cart-container" class="cart-container-box"></div>
   </main>
 
   <footer>
@@ -38,7 +32,7 @@
 
   <a href="https://wa.me/918307566768" target="_blank" class="whatsapp-float" title="Chat on WhatsApp">
     <span class="whatsapp-label">Have a Query? Chat on WhatsApp</span><svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M16.004 0C7.165 0 .003 7.161.001 15.999c-.001 2.819.736 5.571 2.138 7.998L.012 32l8.186-2.09a16.04 16.04 0 007.806 1.99h.006C24.838 31.9 32 24.738 32 15.999 32 7.161 24.838 0 16.004 0zm0 29.3a13.36 13.36 0 01-7.02-1.99l-.503-.3-5.22 1.332 1.393-5.093-.328-.523A13.27 13.27 0 012.6 15.999c0-7.39 6.015-13.4 13.404-13.4 7.39 0 13.398 6.01 13.398 13.4 0 7.39-5.998 13.301-13.398 13.301zm7.338-10.035c-.403-.2-2.378-1.173-2.747-1.308-.37-.134-.639-.2-.908.2s-1.042 1.308-1.278 1.576c-.236.268-.472.3-.875.1-.403-.2-1.704-.628-3.246-2.002-1.199-1.07-2.009-2.39-2.244-2.793-.236-.403-.025-.62.177-.82.182-.18.403-.47.604-.705.2-.236.268-.403.403-.671.134-.268.067-.503-.034-.705-.1-.2-1.008-2.428-1.378-3.328-.37-.9-.746-.774-1.008-.785-.268-.01-.57-.012-.872-.012-.302 0-.79.113-1.203.57-.403.457-1.538 1.504-1.538 3.668 0 2.164 1.572 4.26 1.791 4.562.219.302 3.093 4.723 7.491 6.617 1.05.453 1.868.723 2.507.926 1.051.334 2.006.287 2.761.175.842-.126 2.378-.973 2.714-1.912.336-.94.336-1.744.236-1.912-.1-.168-.37-.268-.773-.47z"/></svg>
-  </a>
+  </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -48,47 +42,102 @@
   <script>
     function renderCart() {
       const cart = getCart();
-      const container = document.getElementById('cart-items');
-      const summary = document.getElementById('cart-summary');
+      const container = document.getElementById('cart-container');
 
       if (cart.length === 0) {
         container.innerHTML = `
-          <div class="empty-cart">
-            <div class="empty-cart-icon">&#128218;</div>
-            <h2>Your cart is empty</h2>
-            <p>Browse our divine collection and add some books!</p>
-            <a href="index.html">Continue Shopping &rarr;</a>
+          <div class="empty-cart" style="padding: 4rem 1.5rem; text-align: center;">
+            <div class="empty-cart-icon" style="margin-bottom: 1.25rem; display: flex; justify-content: center; color: var(--maroon);">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+              </svg>
+            </div>
+            <h2 style="font-family:'Lora',serif;margin-bottom:0.5rem;color:var(--maroon);">Your cart is empty</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 1.75rem;">Browse our collection and add some books!</p>
+            <a href="index.html" class="bookwagon-checkout-btn" style="text-decoration:none; display: inline-block; max-width: 250px; text-align:center;">Continue Shopping &rarr;</a>
           </div>
         `;
-        summary.style.display = 'none';
+        container.style.border = 'none';
+        container.style.boxShadow = 'none';
+        container.style.background = 'transparent';
         return;
       }
 
-      container.innerHTML = cart.map(item => {
+      // Restore container styles for active cart
+      container.style.border = '';
+      container.style.boxShadow = '';
+      container.style.background = '';
+
+      const itemsHtml = cart.map((item, index) => {
         const book = BOOKS.find(b => b.id === item.bookId);
         if (!book) return '';
+        const authorText = "Sri Srimad Gour Govinda Swami Maharaja"; // Publisher/Author standard for this store
         return `
-          <div class="cart-item">
-            <img src="${book.image}" alt="${book.title}" class="cart-item-image" onerror="this.style.background='linear-gradient(145deg, #f8f4ec, #f0e8d8)';" />
-            <div class="cart-item-details">
-              <h3 class="cart-item-title">${book.title}</h3>
-              <p class="cart-item-price">Rs. ${book.price}</p>
+          <div class="bookwagon-cart-item">
+            <div class="item-number-col">${index + 1}</div>
+            
+            <div class="item-image-col">
+              <img src="${book.image}" alt="${book.title}" onerror="this.style.background='linear-gradient(145deg, #f8f4ec, #f0e8d8)';" />
             </div>
-            <div class="quantity-control">
-              <button class="quantity-btn" onclick="updateQty(${book.id}, -1)">&#8722;</button>
-              <input type="text" class="quantity-input" value="${item.quantity}" readonly />
-              <button class="quantity-btn" onclick="updateQty(${book.id}, 1)">+</button>
+            
+            <div class="item-details-col">
+              <h3 class="item-title">${book.title}</h3>
+              <p class="item-author">By: ${authorText}</p>
+              <p class="item-price">Rs. ${book.price}</p>
+              
+              <div class="item-action-row">
+                <div class="quantity-control">
+                  <button class="quantity-btn" id="minus-${book.id}" onclick="updateQty(${book.id}, -1)" ${item.quantity <= 1 ? 'disabled' : ''}>&#8722;</button>
+                  <input type="text" class="quantity-input" id="qty-${book.id}" value="${item.quantity}" readonly />
+                  <button class="quantity-btn" id="plus-${book.id}" onclick="updateQty(${book.id}, 1)" ${item.quantity >= book.stock_quantity ? 'disabled' : ''}>+</button>
+                </div>
+                
+                <span class="item-total-price">Total Price: <strong>Rs. ${book.price * item.quantity}</strong></span>
+              </div>
             </div>
-            <strong style="font-size:1.15rem;color:var(--accent);">Rs. ${book.price * item.quantity}</strong>
-            <button onclick="removeItem(${book.id})" style="background:none;border:none;cursor:pointer;font-size:1.5rem;color:var(--danger);transition:var(--transition-fast);padding:0.5rem;" title="Remove">&#10005;</button>
+            
+            <div class="item-actions-col">
+              <button class="cart-remove-btn" onclick="removeItem(${book.id})">Remove</button>
+            </div>
           </div>
         `;
       }).join('');
 
       const subtotal = getCartTotal();
-      document.getElementById('subtotal').textContent = `Rs. ${subtotal}`;
-      document.getElementById('total').textContent = `Rs. ${subtotal + CONFIG.DELIVERY_CHARGE}`;
-      summary.style.display = 'block';
+      const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+      const deliveryCharge = CONFIG.DELIVERY_CHARGE;
+      const totalPayable = subtotal + deliveryCharge;
+
+      const summaryHtml = `
+        <div class="bookwagon-summary">
+          <div class="summary-left-col">
+            <div class="summary-line"><span>Total Items</span><span>${totalItems}</span></div>
+            <div class="summary-line"><span>Total Gross</span><span>Rs. ${subtotal}</span></div>
+            <p class="delivery-estimate-text" style="display: flex; align-items: center; gap: 0.4rem;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle;">
+                <rect x="1" y="3" width="15" height="13"></rect>
+                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                <circle cx="18.5" cy="18.5" r="2.5"></circle>
+              </svg>
+              Ships within 10-15 days.
+            </p>
+          </div>
+          <div class="summary-right-col">
+            <div class="summary-line"><span>Shipping</span><span>Rs. ${deliveryCharge}</span></div>
+            <div class="summary-line total-payable-line"><span>Amount Payable</span><span>Rs. ${totalPayable}</span></div>
+            <a href="checkout.html" style="text-decoration:none;"><button class="bookwagon-checkout-btn">Proceed to Checkout</button></a>
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = `
+        <div class="cart-items-list-container">
+          ${itemsHtml}
+        </div>
+        ${summaryHtml}
+      `;
     }
 
     function updateQty(bookId, delta) {
@@ -108,7 +157,7 @@
 
     // Load books dynamically before rendering cart
     async function initCart() {
-      const container = document.getElementById('cart-items');
+      const container = document.getElementById('cart-container');
       container.innerHTML = '<div class="spinner"></div>';
       await fetchBooks();
       renderCart();

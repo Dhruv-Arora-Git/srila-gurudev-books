@@ -9,7 +9,7 @@
 <body>
   <header id="main-header">
     <div class="header-content">
-      <a href="index.html" class="logo"><span class="logo-icon">&#128214;</span> Gurudev Books</a>
+      <a href="index.html" class="logo"><span class="logo-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--maroon);"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></span> Gurudev Books</a>
       <nav>
         <a href="index.html">Books</a>
         <a href="track.html">Track Order</a>
@@ -54,7 +54,7 @@
   <script src="js/track.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const savedPhone = localStorage.getItem('customer_phone');
+      const savedPhone = localStorage.getItem('last_tracked_phone');
       if (savedPhone) {
         document.getElementById('track-phone').value = savedPhone;
         trackOrders();

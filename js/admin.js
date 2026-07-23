@@ -207,7 +207,7 @@ function renderOrders() {
     const searchTerm = document.getElementById('search-input')?.value?.trim();
     container.innerHTML = `
       <div class="empty-state">
-        <div class="empty-state-icon">&#128230;</div>
+        <div class="empty-state-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><polygon points="12 22.08 12 12 3 6.92 3 17.08 12 22.08"></polygon><polygon points="12 22.08 12 12 21 6.92 21 17.08 12 22.08"></polygon><polygon points="12 12 3 6.92 12 1.84 21 6.92 12 12"></polygon><line x1="12" y1="22.08" x2="12" y2="12"></line></svg></div>
         <p>${searchTerm ? 'No orders match your search.' : 'No orders found.'}</p>
       </div>
     `;
@@ -232,7 +232,7 @@ function renderOrders() {
     html += `
       <div class="user-group">
         <div class="user-group-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
-          <span class="user-phone">&#128222; ${user.phone}</span>
+          <span class="user-phone" style="display: inline-flex; align-items: center; gap: 0.35rem;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>${user.phone}</span>
           <span class="user-name">${user.name}</span>
           <span class="user-order-count">${user.orders.length} order${user.orders.length > 1 ? 's' : ''}</span>
         </div>
@@ -269,12 +269,18 @@ function renderOrderCard(order) {
   }).join('');
 
   const proofBtn = order.payment_proof_url
-    ? `<button class="proof-btn" onclick="openProofModal('${order.payment_proof_url}')">&#128247; View Payment Proof</button>`
+    ? `<button class="proof-btn" onclick="openProofModal('${order.payment_proof_url}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align: middle; margin-right:4px;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg> View Payment Proof</button>`
     : '';
 
-  const trackingHtml = order.tracking_number
-    ? `<p style="margin-top:0.65rem;font-size:0.83rem;color:var(--purple);background:var(--purple-light);padding:0.4rem 0.65rem;border-radius:var(--radius-sm);display:inline-block;"><strong>Tracking:</strong> ${order.tracking_number}</p>`
-    : '';
+  let trackingHtml = '';
+  if (order.tracking_number || order.tracking_link) {
+    trackingHtml = `
+      <div style="margin-top:0.65rem;font-size:0.83rem;background:var(--purple-light);padding:0.5rem 0.75rem;border-radius:var(--radius-sm);line-height:1.4;display:inline-block;max-width:100%;">
+        ${order.tracking_number ? `<p style="color:var(--purple);margin:0;"><strong>Tracking #:</strong> ${order.tracking_number}</p>` : ''}
+        ${order.tracking_link ? `<p style="color:var(--purple);margin:2px 0 0 0;word-break:break-all;"><strong>Link:</strong> <a href="${order.tracking_link}" target="_blank" style="text-decoration:underline;color:var(--purple);font-weight:600;">${order.tracking_link}</a></p>` : ''}
+      </div>
+    `;
+  }
 
   return `
     <div class="order-card-admin">
@@ -309,7 +315,8 @@ function renderOrderCard(order) {
           <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
           <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
         </select>
-        <input type="text" class="tracking-input-admin" id="tracking-${order.id}" placeholder="Tracking #" value="${order.tracking_number || ''}" />
+        <input type="text" class="tracking-input-admin" id="tracking-num-${order.id}" placeholder="Tracking #" value="${order.tracking_number || ''}" style="width:130px;" />
+        <input type="text" class="tracking-input-admin" id="tracking-link-${order.id}" placeholder="Tracking Link" value="${order.tracking_link || ''}" style="flex:1;min-width:140px;" />
         <button class="update-btn-admin" onclick="updateOrder('${order.id}')">Update</button>
       </div>
     </div>
@@ -354,7 +361,8 @@ function closeProofModal(event) {
 
 async function updateOrder(orderId) {
   const newStatus = document.getElementById(`status-${orderId}`).value;
-  const trackingNumber = document.getElementById(`tracking-${orderId}`).value.trim();
+  const trackingNumber = document.getElementById(`tracking-num-${orderId}`).value.trim();
+  const trackingLink = document.getElementById(`tracking-link-${orderId}`).value.trim();
 
   const btn = event.target;
   btn.disabled = true;
@@ -365,7 +373,11 @@ async function updateOrder(orderId) {
 
     const { error } = await supabaseClient
       .from('orders')
-      .update({ status: newStatus, tracking_number: trackingNumber || null })
+      .update({ 
+        status: newStatus, 
+        tracking_number: trackingNumber || null,
+        tracking_link: trackingLink || null
+      })
       .eq('id', orderId);
 
     if (error) throw error;

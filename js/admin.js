@@ -152,7 +152,7 @@ function renderStats() {
   const verified = orders.filter(o => o.status === 'Payment Verified').length;
   const shipped = orders.filter(o => o.status === 'Shipped').length;
   const delivered = orders.filter(o => o.status === 'Delivered').length;
-  const revenue = orders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+  const lakshmi = orders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
 
   document.getElementById('stats-grid').innerHTML = `
     <div class="stat-card">
@@ -175,9 +175,9 @@ function renderStats() {
       <div class="stat-number">${delivered}</div>
       <div class="stat-label">Delivered</div>
     </div>
-    <div class="stat-card revenue">
-      <div class="stat-number">Rs. ${revenue.toLocaleString('en-IN')}</div>
-      <div class="stat-label">Total Revenue</div>
+    <div class="stat-card lakshmi">
+      <div class="stat-number">Rs. ${lakshmi.toLocaleString('en-IN')}</div>
+      <div class="stat-label">Total Lakshmi</div>
     </div>
   `;
 }
@@ -247,6 +247,18 @@ function renderOrders() {
 }
 
 function renderOrderCard(order) {
+  let shippingLabelText = '';
+  const rawAddress = order.address || '';
+  if (rawAddress.includes(' | ')) {
+    const parts = rawAddress.split(' | ');
+    const street = parts[0] || '';
+    const cityState = parts[1] || '';
+    const pincode = parts[2] || '';
+    shippingLabelText = `Name: ${order.customer_name}\nAddress: ${street}\n${cityState} - ${pincode}\nPhone: ${order.phone}`;
+  } else {
+    shippingLabelText = `Name: ${order.customer_name}\nAddress: ${rawAddress}\nPhone: ${order.phone}`;
+  }
+
   const date = new Date(order.created_at).toLocaleDateString('en-IN', {
     day: 'numeric',
     month: 'short',
@@ -291,8 +303,12 @@ function renderOrderCard(order) {
         <button class="proof-btn" onclick="deleteOrder('${order.id}')" style="margin:0 0 0 auto;padding:0.35rem 0.65rem;font-size:0.75rem;background:var(--danger-light);color:var(--danger);">Delete Order</button>
       </div>
 
-      <div class="order-address">
-        <strong>Address:</strong> ${order.address}
+      <div class="order-address" style="line-height:1.5; margin-bottom:1.25rem;">
+        <div style="background:#F5F5F4; border:1px solid #E7E5E4; padding:0.85rem 1.15rem; border-radius:var(--radius-sm); font-family:monospace; white-space:pre-wrap; font-size:0.88rem; color:var(--text); box-shadow:inset 0 1px 3px rgba(0,0,0,0.02);" id="shipping-label-${order.id}">${shippingLabelText}</div>
+        <button class="copy-address-btn" onclick="copyShippingLabel('${order.id}', this)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          Copy Shipping Address
+        </button>
       </div>
 
       <div class="order-items-mini">
@@ -766,3 +782,23 @@ document.addEventListener('keydown', (e) => {
     closeBookModal();
   }
 });
+
+function copyShippingLabel(orderId, btn) {
+  const textEl = document.getElementById(`shipping-label-${orderId}`);
+  if (!textEl) return;
+  
+  navigator.clipboard.writeText(textEl.textContent.trim()).then(() => {
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = `
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      Copied!
+    `;
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.innerHTML = originalHTML;
+      btn.classList.remove('copied');
+    }, 2000);
+  }).catch(err => {
+    console.error('Copy failed:', err);
+  });
+}

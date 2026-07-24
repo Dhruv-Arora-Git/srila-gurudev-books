@@ -157,52 +157,63 @@ header.scrolled .header-content {
 
 nav {
   display: flex;
-  gap: 1.75rem;
+  gap: 1.5rem;
   align-items: center;
 }
 
-nav a {
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
   color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 0.92rem;
   transition: var(--transition-fast);
-  position: relative;
-  padding: 0.4rem 0;
+  padding: 0.45rem 0.75rem;
+  border-radius: var(--radius-sm);
   letter-spacing: 0.15px;
 }
 
-nav a::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  width: 0;
-  height: 2px;
-  background: var(--saffron-light);
-  transition: var(--transition);
-  transform: translateX(-50%);
-  border-radius: 2px;
-}
-
-nav a:hover {
+.nav-link:hover {
   color: white;
+  background: rgba(255, 255, 255, 0.08);
 }
 
-nav a:hover::after {
-  width: 100%;
+.nav-icon {
+  stroke-width: 2.2px;
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.nav-link:hover .nav-icon {
+  transform: translateY(-1px);
+}
+
+.cart-icon-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .cart-badge {
+  position: absolute;
+  top: -8px;
+  right: -9px;
   background: linear-gradient(135deg, var(--saffron), var(--saffron-light));
   color: var(--maroon);
+  border: 1.5px solid #4A1525; /* Maroon color background */
   border-radius: 50%;
-  padding: 0.15rem 0.5rem;
-  font-size: 0.7rem;
-  font-weight: 700;
-  margin-left: 0.3rem;
+  width: 17px;
+  height: 17px;
+  font-size: 0.62rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1.5px 4px rgba(0, 0, 0, 0.25);
   animation: badgePop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: 0 2px 6px rgba(217, 119, 6, 0.35);
 }
 
 @keyframes badgePop {
@@ -2582,6 +2593,36 @@ footer a {
 }
 
 .copy-track-btn.copied {
+  background: #15803D !important; /* Green */
+}
+
+/* Copy Address button for Admin Panel */
+.copy-address-btn {
+  background: var(--saffron);
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.2s ease;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 0.5rem;
+}
+
+.copy-address-btn:hover {
+  background: var(--saffron-dark);
+  transform: translateY(-1px);
+}
+
+.copy-address-btn.copied {
   background: #15803D !important; /* Green */
 }
 

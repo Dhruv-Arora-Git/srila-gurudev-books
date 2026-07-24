@@ -9,13 +9,19 @@ async function submitOrder(event) {
 
   const name = document.getElementById('customer-name').value.trim();
   const phone = document.getElementById('customer-phone').value.trim();
-  const address = document.getElementById('customer-address').value.trim();
+  const street = document.getElementById('customer-street').value.trim();
+  const city = document.getElementById('customer-city').value.trim();
+  const state = document.getElementById('customer-state').value.trim();
+  const pincode = document.getElementById('customer-pincode').value.trim();
   const paymentProof = document.getElementById('payment-proof').files[0];
 
-  if (!name || !phone || !address) {
+  if (!name || !phone || !street || !city || !state || !pincode) {
     showAlert('Missing Details', 'Please fill in all delivery details.', 'warning');
     return;
   }
+
+  // Combine into a single serialized address for the database column
+  const address = `${street} | ${city}, ${state} | ${pincode}`;
 
   if (!paymentProof) {
     showAlert('Payment Proof Required', 'Please upload your UPI payment screenshot proof.', 'warning');

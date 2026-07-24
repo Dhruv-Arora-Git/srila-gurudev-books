@@ -81,7 +81,7 @@ function updateCartBadge() {
 
   const oldCount = parseInt(badge.textContent || '0');
   badge.textContent = count;
-  badge.style.display = count > 0 ? 'inline' : 'none';
+  badge.style.display = count > 0 ? 'flex' : 'none';
 
   // Trigger bounce animation if quantity increased
   if (count > oldCount) {

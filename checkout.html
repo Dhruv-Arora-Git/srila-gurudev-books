@@ -11,10 +11,25 @@
     <div class="header-content">
       <a href="index.html" class="logo"><span class="logo-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--maroon);"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></span> Gurudev Books</a>
       <nav>
-        <a href="index.html">Books</a>
-        <a href="track.html">Track Order</a>
-        <a href="admin.html">Admin</a>
-        <a href="cart.html">Cart <span id="cart-badge" class="cart-badge" style="display:none;">0</span></a>
+        <a href="index.html" class="nav-link">
+          <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+          Books
+        </a>
+        <a href="track.html" class="nav-link">
+          <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+          Track Order
+        </a>
+        <a href="admin.html" class="nav-link">
+          <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          Admin
+        </a>
+        <a href="cart.html" class="nav-link">
+          <div class="cart-icon-wrapper">
+            <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+            <span id="cart-badge" class="cart-badge" style="display:none;">0</span>
+          </div>
+          Cart
+        </a>
       </nav>
     </div>
   </header>
@@ -37,8 +52,23 @@
       </div>
 
       <div class="form-group">
-        <label for="customer-address">Delivery Address</label>
-        <textarea id="customer-address" required placeholder="House No, Street, City, State, PIN Code"></textarea>
+        <label for="customer-street">Street Address</label>
+        <textarea id="customer-street" required placeholder="Flat / House No. / Street / Area / Landmark" rows="2" style="min-height: 70px;"></textarea>
+      </div>
+
+      <div class="form-row" style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1.5rem;">
+        <div class="form-group" style="flex:2; min-width:180px; margin-bottom:0;">
+          <label for="customer-city">City</label>
+          <input type="text" id="customer-city" required placeholder="e.g. Mumbai" style="width:100%;" />
+        </div>
+        <div class="form-group" style="flex:1.5; min-width:120px; margin-bottom:0;">
+          <label for="customer-state">State</label>
+          <input type="text" id="customer-state" required placeholder="e.g. MH" style="width:100%;" />
+        </div>
+        <div class="form-group" style="flex:1.5; min-width:140px; margin-bottom:0;">
+          <label for="customer-pincode">PIN Code</label>
+          <input type="text" id="customer-pincode" required placeholder="6-digit code" pattern="[0-9]{6}" style="width:100%;" />
+        </div>
       </div>
 
       <div class="payment-section">

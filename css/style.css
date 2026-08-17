@@ -127,32 +127,16 @@ header.scrolled .header-content {
 }
 
 .logo {
-  font-family: 'Lora', Georgia, serif;
-  font-size: 1.55rem;
-  font-weight: 700;
-  text-decoration: none;
-  color: white;
-  letter-spacing: 0.15px;
-  transition: var(--transition-fast);
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-
-.logo-icon {
-  width: 30px;
-  height: 30px;
-  background: linear-gradient(135deg, var(--saffron), var(--saffron-light));
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.85rem;
-  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3);
+  transition: var(--transition-fast);
+  color: var(--saffron-light);
 }
 
 .logo:hover {
-  transform: scale(1.02);
+  transform: scale(1.05);
+  color: white;
 }
 
 nav {
@@ -248,7 +232,7 @@ nav {
 
 .hero-section {
   background: linear-gradient(180deg, #4a1525 0%, #4a1525 8%, #3d1220 25%, #5a1a30 42%, #6b2138 58%, #8b3a52 74%, #b8765c 88%, var(--ivory) 100%);
-  padding: 8rem 2rem 2rem;
+  padding: 8.5rem 2rem 4rem;
   position: relative;
   overflow: hidden;
   transition: transform 0.1s linear, opacity 0.1s linear;
@@ -267,165 +251,135 @@ nav {
 }
 
 .hero-content {
-  max-width: 1280px;
+  max-width: 1380px;
+  width: 90%;
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+/* Wide elegant card block covering 80-90% of screen width */
+.hero-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+  padding: 2rem 3rem;
+  box-shadow: 
+    0 24px 60px rgba(0, 0, 0, 0.25),
+    0 1px 3px rgba(255, 255, 255, 0.05) inset;
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  gap: 1.5rem;
-  position: relative;
-  z-index: 1;
-}
-
-.hero-portraits {
-  display: flex;
-  align-items: center;
   gap: 2rem;
-  position: relative;
-  transition: transform 0.1s linear;
-}
-
-.hero-gopal-wrapper,
-.hero-portrait-wrapper {
-  transition: transform 0.1s linear;
-}
-
-.hero-gopal-wrapper {
-  position: relative;
-  flex-shrink: 0;
-  transition: transform 0.1s linear;
-}
-
-.hero-gopal-glow {
-  position: absolute;
-  top: -12px;
-  left: -12px;
-  right: -12px;
-  bottom: -12px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(251, 191, 36, 0.35) 0%, rgba(217, 119, 6, 0.12) 50%, transparent 70%);
-  animation: glowPulse 4s ease-in-out infinite;
-}
-
-@keyframes glowPulse {
-  0%, 100% { opacity: 0.5; transform: scale(1); }
-  50% { opacity: 0.8; transform: scale(1.03); }
-}
-
-.hero-gopal {
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 2px solid rgba(251, 191, 36, 0.7);
-  box-shadow: 
-    0 0 0 4px rgba(251, 191, 36, 0.12),
-    0 12px 35px rgba(0, 0, 0, 0.4);
-  background: linear-gradient(145deg, #f8f4ec, #f0e8d8);
-  position: relative;
-  z-index: 1;
-}
-
-.hero-gopal img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
+  position: relative;
 }
 
+/* Left Image (Gopal Jiu) */
+.hero-image-left {
+  flex: 0 0 280px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  filter: drop-shadow(0 15px 35px rgba(251, 191, 36, 0.22)) drop-shadow(0 15px 35px rgba(0, 0, 0, 0.45));
+  transition: transform 0.3s ease;
+}
+
+.hero-image-left:hover {
+  transform: scale(1.03);
+}
+
+.deity-img {
+  width: 100%;
+  height: auto;
+  max-width: 210px; /* Increased size for Gopal Jiu */
+  max-height: 250px;
+  object-fit: contain;
+}
+
+/* Right Image (Gurus) */
+.hero-image-right {
+  flex: 0 0 280px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  filter: drop-shadow(0 15px 35px rgba(0, 0, 0, 0.4));
+  transition: transform 0.3s ease;
+}
+
+.hero-image-right:hover {
+  transform: scale(1.03);
+}
+
+.gurus-img {
+  width: 100%;
+  height: auto;
+  max-width: 280px;
+  max-height: 220px;
+  object-fit: contain;
+}
+
+/* Hero Typography */
 .hero-info {
   text-align: center;
   flex: 1;
   min-width: 0;
-  transition: transform 0.1s linear, opacity 0.1s linear;
 }
 
 .hero-label {
   font-family: 'Inter', sans-serif;
-  font-size: 0.72rem;
-  font-weight: 500;
-  color: rgba(251, 191, 36, 0.8);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--saffron-light);
   text-transform: uppercase;
-  letter-spacing: 3px;
+  letter-spacing: 4px;
   margin-bottom: 0.5rem;
 }
 
 .hero-name {
   font-family: 'Lora', Georgia, serif;
-  font-size: 1.75rem;
-  font-weight: 700;
+  font-size: clamp(1.8rem, 4.5vw, 2.65rem);
+  font-weight: 500;
   color: white;
   line-height: 1.25;
-  margin-bottom: 0.85rem;
+  margin-bottom: 1.25rem;
   letter-spacing: -0.01em;
-  text-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
+  text-shadow: none;
 }
 
 .hero-divider {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
-  margin-bottom: 0.75rem;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
 }
 
 .divider-line {
   flex: 1;
-  max-width: 100px;
+  width: 100px;
+  max-width: 120px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.5), transparent);
+  background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.3), transparent);
 }
 
 .divider-icon {
-  font-size: 1.3rem;
-  color: rgba(251, 191, 36, 0.7);
-  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.85;
 }
 
 .hero-signature {
   height: 32px;
   width: auto;
-  opacity: 0.85;
+  opacity: 0.8;
   filter: brightness(0) invert(1);
 }
 
-.hero-portrait-wrapper {
-  position: relative;
-  flex-shrink: 0;
-  transition: transform 0.1s linear;
-}
-
-.hero-portrait-glow {
-  position: absolute;
-  top: -12px;
-  left: -12px;
-  right: -12px;
-  bottom: -12px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(251, 191, 36, 0.3) 0%, rgba(217, 119, 6, 0.1) 50%, transparent 70%);
-  animation: glowPulse 4s ease-in-out infinite 0.5s;
-}
-
-.hero-portrait {
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 2px solid rgba(251, 191, 36, 0.6);
-  box-shadow: 
-    0 0 0 4px rgba(251, 191, 36, 0.1),
-    0 12px 35px rgba(0, 0, 0, 0.4);
-  background: linear-gradient(145deg, #f8f4ec, #f0e8d8);
-  position: relative;
-  z-index: 1;
-}
-
-.hero-portrait img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top center;
-}
 
 .page-title {
   text-align: center;
@@ -1832,25 +1786,7 @@ footer a {
   text-decoration: none;
 }
 
-@media (min-width: 769px) {
-  .hero-portraits {
-    display: contents;
-  }
 
-  .hero-gopal-wrapper {
-    order: 1;
-  }
-
-  .hero-info {
-    order: 2;
-    flex: 1;
-    text-align: center;
-  }
-
-  .hero-portrait-wrapper {
-    order: 3;
-  }
-}
 
 @media (max-width: 768px) {
   .header-content {
@@ -2003,7 +1939,7 @@ footer a {
   }
 
   .hero-section {
-    padding: 7rem 1rem 1.5rem;
+    padding: 7rem 1.5rem 3.5rem;
   }
 
   .hero-bg-mandala {
@@ -2012,69 +1948,55 @@ footer a {
   }
 
   .hero-content {
+    max-width: 95%;
+    width: 95%;
+  }
+
+  .hero-card {
     flex-direction: column;
-    gap: 1.25rem;
+    padding: 2.25rem 1.5rem;
+    gap: 1.75rem;
   }
 
-  .hero-gopal-glow {
-    top: -8px;
-    left: -8px;
-    right: -8px;
-    bottom: -8px;
+  .hero-image-left {
+    width: 120px;
+    order: 1;
+    justify-content: center;
   }
 
-  .hero-gopal {
-    width: 90px;
-    height: 90px;
-    border-width: 2px;
-    box-shadow: 
-      0 0 0 2px rgba(251, 191, 36, 0.1),
-      0 6px 20px rgba(0, 0, 0, 0.3);
+  .hero-image-right {
+    width: 180px;
+    order: 2;
+    justify-content: center;
+    margin-top: -0.5rem;
   }
 
-  .hero-portrait-glow {
-    top: -8px;
-    left: -8px;
-    right: -8px;
-    bottom: -8px;
-  }
-
-  .hero-portrait {
-    width: 90px;
-    height: 90px;
-    border-width: 2px;
-    box-shadow: 
-      0 0 0 2px rgba(251, 191, 36, 0.08),
-      0 6px 20px rgba(0, 0, 0, 0.3);
+  .hero-info {
+    order: 3;
   }
 
   .hero-label {
-    font-size: 0.65rem;
-    letter-spacing: 2.5px;
-    margin-bottom: 0.35rem;
+    font-size: 0.72rem;
+    letter-spacing: 3px;
   }
 
   .hero-name {
-    font-size: 1.35rem;
-    margin-bottom: 0.75rem;
-    line-height: 1.3;
+    font-size: 1.75rem;
+    margin-bottom: 1rem;
+    line-height: 1.25;
   }
 
   .hero-divider {
-    gap: 0.75rem;
-    margin-bottom: 0.55rem;
+    gap: 1rem;
+    margin-bottom: 1rem;
   }
 
   .divider-line {
     max-width: 80px;
   }
 
-  .divider-icon {
-    font-size: 1.1rem;
-  }
-
   .hero-signature {
-    height: 26px;
+    height: 28px;
   }
 
   .book-grid {
@@ -2547,27 +2469,696 @@ footer a {
 
 /* Responsiveness overrides */
 @media (max-width: 600px) {
+  /* Bottom Navigation Bar Styles on Mobile */
+  header {
+    height: 46px !important;
+  }
+  .header-content {
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 0 1rem !important;
+    height: 100% !important;
+  }
+  header.scrolled .header-content {
+    padding: 0 1rem !important;
+  }
+  .logo {
+    margin: 0 auto !important;
+  }
+  .logo svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+  
+  nav {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 52px !important;
+    background: linear-gradient(135deg, var(--maroon) 0%, var(--maroon-light) 100%) !important;
+    border-top: 2px solid var(--saffron-dark) !important;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-around !important;
+    align-items: center !important;
+    padding: 0.2rem 0 !important;
+    margin: 0 !important;
+    z-index: 1000 !important;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15) !important;
+    gap: 0 !important;
+  }
+
+  .nav-link {
+    flex: 1 !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 2px !important;
+    font-size: 0.65rem !important;
+    color: rgba(255, 255, 255, 0.75) !important;
+    padding: 0.15rem 0 !important;
+    border-radius: 0 !important;
+    min-height: 44px !important;
+    letter-spacing: 0px !important;
+    background: transparent !important;
+  }
+  
+  .nav-link:hover, .nav-link:active {
+    color: white !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+  }
+  
+  .nav-icon {
+    width: 16px !important;
+    height: 16px !important;
+    margin: 0 !important;
+  }
+
+  .cart-icon-wrapper {
+    margin: 0 !important;
+  }
+
+  .cart-badge {
+    top: -5px !important;
+    right: -7px !important;
+    font-size: 0.58rem !important;
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  body {
+    padding-bottom: 60px !important;
+  }
+
+  .container {
+    padding-top: 3.5rem !important;
+  }
+
+  /* Global Mobile Typography Consistency across Tabs */
+  h1, h2, h3, h4, h5, h6 {
+    line-height: 1.25 !important;
+  }
+
+  .page-title h1,
+  .dashboard-header h1,
+  .checkout-title h1,
+  .page-title h2 {
+    font-family: 'Lora', Georgia, serif !important;
+    font-size: 1.3rem !important;
+    font-weight: 700 !important;
+    color: var(--maroon) !important;
+    text-align: center !important;
+    margin-bottom: 0.35rem !important;
+  }
+
+  .page-title p,
+  .dashboard-header p {
+    font-size: 0.8rem !important;
+    color: var(--text-secondary) !important;
+    text-align: center !important;
+  }
+
+  .page-title,
+  .dashboard-header {
+    text-align: center !important;
+    margin-bottom: 1.25rem !important;
+    width: 100% !important;
+  }
+
+  .empty-cart h2,
+  #inventory-tab-view h2,
+  .admin-login h2 {
+    font-family: 'Lora', Georgia, serif !important;
+    font-size: 1.1rem !important;
+    color: var(--maroon) !important;
+    text-align: center !important;
+    margin-bottom: 0.85rem !important;
+  }
+
+  .book-title,
+  .item-title,
+  .order-id,
+  .admin-order-id {
+    font-family: 'Lora', Georgia, serif !important;
+    font-size: 0.98rem !important;
+    font-weight: 700 !important;
+    color: var(--maroon) !important;
+  }
+
+  .item-author,
+  .book-author,
+  .order-date,
+  .order-item-row span:first-child {
+    font-size: 0.72rem !important;
+    color: var(--text-secondary) !important;
+  }
+
+  .book-price,
+  .item-price,
+  .order-item-row span:last-child {
+    font-size: 1.05rem !important;
+    font-weight: 700 !important;
+    color: var(--saffron-dark) !important;
+  }
+
+  .order-card {
+    padding: 1rem !important;
+    margin-bottom: 1rem !important;
+  }
+  
+  .order-header {
+    margin-bottom: 0.85rem !important;
+    padding-bottom: 0.65rem !important;
+  }
+
+  .order-item-row {
+    font-size: 0.82rem !important;
+    padding: 0.45rem 0 !important;
+  }
+
+  /* Interactive Target Sizing Accessibility - Solves Wrapping & Square Boxes */
+  .quantity-control {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    height: 32px !important; /* Slimmer height */
+    width: 86px !important; /* Exact width needed to fit elements horizontally */
+    max-width: 86px !important;
+    border: 1.5px solid #E7E5E4 !important;
+    border-radius: var(--radius-sm) !important;
+    overflow: hidden !important;
+    background: var(--ivory) !important;
+    flex-shrink: 0 !important;
+  }
+  
+  .quantity-btn {
+    height: 100% !important;
+    width: 26px !important;
+    min-width: 26px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0.95rem !important;
+    background: transparent !important;
+    border: none !important;
+    color: var(--text-secondary) !important;
+    cursor: pointer !important;
+  }
+  
+  .quantity-input {
+    height: 100% !important;
+    width: 30px !important;
+    border: none !important;
+    background: transparent !important;
+    text-align: center !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    color: var(--text) !important;
+    padding: 0 !important;
+  }
+  
+  .add-to-cart-btn {
+    height: 32px !important;
+    min-height: 32px !important; /* Match quantity controls */
+    width: 100px !important;
+    flex: 0 0 100px !important;
+    padding: 0 0.5rem !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* Hero Section Mobile Compact Override */
+  .hero-section {
+    padding: 3.25rem 1rem 0.75rem !important;
+  }
+  
+  .hero-bg-mandala {
+    width: 140px !important;
+    height: 140px !important;
+    opacity: 0.04 !important;
+  }
+  
+  .hero-card {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    grid-template-areas: 
+      "info info"
+      "img-left img-right" !important;
+    padding: 1rem 0.85rem !important;
+    gap: 0.75rem 0.4rem !important;
+    border-radius: var(--radius) !important;
+  }
+  
+  .hero-info {
+    grid-area: info !important;
+    text-align: center !important;
+  }
+  
+  .hero-label {
+    font-size: 0.62rem !important;
+    letter-spacing: 1.5px !important;
+    margin-bottom: 0.2rem !important;
+  }
+  
+  .hero-name {
+    font-size: 1.25rem !important;
+    line-height: 1.25 !important;
+    margin-bottom: 0.4rem !important;
+  }
+  
+  .hero-divider {
+    margin-bottom: 0.4rem !important;
+    gap: 0.4rem !important;
+  }
+  
+  .divider-line {
+    max-width: 50px !important;
+  }
+  
+  .divider-icon img {
+    height: 18px !important;
+  }
+  
+  .hero-signature {
+    height: 18px !important;
+  }
+  
+  .hero-image-left {
+    grid-area: img-left !important;
+    width: 85px !important;
+    justify-self: center !important;
+    margin: 0 !important;
+    display: flex !important;
+    justify-content: center !important;
+  }
+  
+  .hero-image-right {
+    grid-area: img-right !important;
+    width: 125px !important;
+    justify-self: center !important;
+    margin-top: 0 !important;
+    display: flex !important;
+    justify-content: center !important;
+  }
+  
+  .deity-img {
+    max-height: 105px !important;
+  }
+  
+  .gurus-img {
+    max-height: 95px !important;
+  }
+
+  /* Book Card mobile layout refinements - Premium Horizontal Card */
+  .book-card {
+    flex-direction: row !important; /* Side-by-side layout */
+    align-items: stretch !important;
+    background: white !important;
+    border-radius: var(--radius-lg) !important;
+    border: 1px solid rgba(74, 21, 37, 0.07) !important;
+    box-shadow: var(--shadow-sm) !important;
+    overflow: hidden !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    height: auto !important;
+    min-height: 135px !important;
+  }
+
+  .book-image-wrapper {
+    flex: 0 0 85px !important; /* Fixed left column for cover */
+    width: 85px !important;
+    height: auto !important;
+    background: transparent !important;
+    padding: 0.4rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-right: 1px solid rgba(74, 21, 37, 0.04) !important;
+    border-bottom: none !important;
+  }
+
+  .book-image-wrapper img {
+    height: auto !important;
+    width: auto !important;
+    max-width: 75px !important;
+    max-height: 115px !important;
+    object-fit: contain !important;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15)) !important; /* Drop shadow on cover */
+    border-radius: 2px !important;
+  }
+
+  .book-info {
+    flex: 1 !important;
+    padding: 0.65rem 0.75rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important; /* Stack elements naturally from top to bottom */
+    gap: 0.3rem !important;
+    min-width: 0 !important;
+  }
+
+  .book-title {
+    font-family: 'Lora', Georgia, serif !important;
+    font-size: 0.98rem !important; /* Balanced book title font size */
+    font-weight: 700 !important;
+    line-height: 1.25 !important;
+    margin-bottom: 0.2rem !important;
+    text-align: left !important;
+    white-space: normal !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    color: var(--maroon) !important;
+  }
+
+  /* Hide description on mobile to maximize layout efficiency */
+  .book-description {
+    display: none !important;
+  }
+
+  .book-meta {
+    justify-content: flex-start !important;
+    margin-bottom: 0.25rem !important;
+    gap: 0.25rem !important;
+    flex-wrap: wrap !important;
+  }
+  
+  .meta-tag {
+    padding: 0.12rem 0.35rem !important;
+    font-size: 0.68rem !important; /* Enhanced metadata readability */
+  }
+
+  .book-bottom {
+    display: flex !important;
+    flex-direction: column !important; /* Stack price and actions vertically for clean alignment */
+    align-items: flex-start !important;
+    gap: 0.4rem !important;
+    border-top: none !important;
+    padding-top: 0.15rem !important;
+    margin-top: auto !important; /* Push actions to bottom of card */
+    width: 100% !important;
+  }
+
+  .book-price {
+    font-size: 1.05rem !important; /* Proportional price text size */
+    font-weight: 700 !important;
+    text-align: left !important;
+    color: var(--saffron-dark) !important;
+    margin: 0 !important;
+  }
+
+  .book-actions {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 0.4rem !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Compact controls for row placement */
+  .quantity-control {
+    height: 32px !important;
+    flex: 0 0 86px !important;
+    width: 86px !important;
+  }
+  
+  .quantity-btn {
+    padding: 0 0.55rem !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 1.05rem !important;
+    min-width: 26px !important;
+  }
+  
+  .quantity-input {
+    height: 100% !important;
+    font-size: 0.9rem !important;
+    width: 28px !important;
+  }
+
+  .add-to-cart-btn {
+    height: 32px !important;
+    min-height: 32px !important; /* Match quantity controls */
+    width: 100px !important;
+    flex: 0 0 100px !important;
+    padding: 0 0.5rem !important;
+    font-size: 0.72rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* Style out of stock label as a premium badge */
+  .out-of-stock-label {
+    color: #DC2626 !important;
+    background: #FEF2F2 !important;
+    border: 1px solid #FCA5A5 !important;
+    padding: 0.25rem 0.65rem !important;
+    border-radius: var(--radius-sm) !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    display: inline-block !important;
+    text-align: center !important;
+    width: 100% !important;
+  }
+
+  /* Cart Layout Refinement on Mobile */
   .bookwagon-cart-item {
-    flex-direction: column;
-    align-items: stretch;
-    position: relative;
-    padding-bottom: 2rem;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+    padding: 0.85rem 0 !important;
+    position: relative !important;
   }
-  .item-actions-col {
-    position: absolute;
-    top: 1.5rem;
-    right: 0;
+  
+  .item-number-col {
+    display: none !important;
   }
-  .bookwagon-summary {
-    flex-direction: column;
-    padding: 1.5rem;
-    gap: 1.5rem;
+  
+  .item-image-col {
+    width: 55px !important;
+    height: 75px !important;
+    flex-shrink: 0 !important;
   }
+  
+  .item-details-col {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.2rem !important;
+    padding-right: 0.25rem !important; /* Normal padding, no absolute overlaps */
+    flex: 1 1 auto !important;
+    min-width: 0 !important; /* Allow proper flex wrapping of titles */
+  }
+  
+  .item-title {
+    font-size: 0.98rem !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+  
+  .item-author {
+    font-size: 0.72rem !important;
+    margin-bottom: 0.1rem !important;
+  }
+  
+  .item-price {
+    font-size: 1.05rem !important;
+    font-weight: 700 !important;
+  }
+  
   .item-action-row {
-    margin-top: 1rem;
-    gap: 1rem;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.4rem !important;
+    margin-top: 0.35rem !important;
+  }
+
+  /* Specific quantity control styling to prevent stretching into a square box */
+  .bookwagon-cart-item .quantity-control {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    height: 32px !important;
+    max-height: 32px !important;
+    width: 86px !important;
+    max-width: 86px !important;
+    border: 1.5px solid #E7E5E4 !important;
+    border-radius: var(--radius-sm) !important;
+    overflow: hidden !important;
+    background: var(--ivory) !important;
+    flex-shrink: 0 !important;
+    aspect-ratio: auto !important;
+  }
+  
+  .bookwagon-cart-item .quantity-control .quantity-btn {
+    height: 32px !important;
+    max-height: 32px !important;
+    width: 26px !important;
+    min-width: 26px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0.95rem !important;
+    background: transparent !important;
+    border: none !important;
+    color: var(--text-secondary) !important;
+  }
+  
+  .bookwagon-cart-item .quantity-control .quantity-input {
+    height: 32px !important;
+    max-height: 32px !important;
+    width: 30px !important;
+    border: none !important;
+    background: transparent !important;
+    text-align: center !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    color: var(--text) !important;
+    padding: 0 !important;
+  }
+
+  .item-total-price {
+    font-size: 0.78rem !important;
+  }
+  
+  .item-total-price strong {
+    font-size: 0.85rem !important;
+  }
+  
+  .item-actions-col {
+    position: static !important; /* Standard static flow */
+    margin-left: auto !important; /* Push remove button to the far right */
+    align-self: flex-start !important; /* Align to top-right side naturally */
+    padding-top: 0.1rem !important;
+    flex-shrink: 0 !important;
+  }
+  
+  .cart-remove-btn {
+    background: #FEF2F2 !important;
+    color: #EF4444 !important;
+    border: 1px solid #FEE2E2 !important;
+    font-size: 0.68rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    padding: 0.2rem 0.45rem !important;
+    border-radius: var(--radius-sm) !important;
+    min-height: 22px !important;
+    display: inline-block !important;
+    text-align: center !important;
+  }
+
+  .bookwagon-summary {
+    flex-direction: column !important;
+    padding: 1rem !important;
+    gap: 1rem !important;
+  }
+
+  .bookwagon-summary .summary-left-col,
+  .bookwagon-summary .summary-right-col {
+    width: 100% !important;
+  }
+
+  .summary-line span {
+    font-size: 0.85rem !important;
+  }
+
+  .total-payable-line span:last-child {
+    font-size: 1.15rem !important;
+  }
+
+  .bookwagon-checkout-btn {
+    padding: 0.75rem 1.25rem !important;
+    font-size: 0.92rem !important;
+  }
+
+  /* Form Fields Stacking on Mobile */
+  .form-row {
+    flex-direction: column !important;
+    gap: 1.25rem !important;
+  }
+  
+  .form-row .form-group {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* Track Order Card Adjustments */
+  .track-form {
+    padding: 1rem !important;
+    margin-bottom: 1.25rem !important;
+  }
+
+  .order-card {
+    padding: 0.85rem !important;
+    margin-bottom: 0.85rem !important;
+  }
+  
+  .order-header {
+    margin-bottom: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+    gap: 0.35rem !important;
+  }
+
+  .order-items-list {
+    margin: 0.5rem 0 !important;
+    padding: 0.25rem 0 !important;
+  }
+
+  .order-item-row {
+    padding: 0.3rem 0 !important;
+  }
+
+  .summary-row {
+    padding: 0.3rem 0 !important;
+  }
+
+  .summary-row.total-row {
+    padding-top: 0.5rem !important;
+    margin-top: 0.25rem !important;
+  }
+
+  /* WhatsApp Floating Button Mobile Optimization */
+  .whatsapp-float {
+    bottom: 68px !important; /* Adjusted slightly down above the slimmer bottom navigation bar */
+    right: 1rem !important;
+    left: auto !important;
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 50% !important;
+    padding: 0 !important;
+    justify-content: center !important;
+    box-shadow: 0 4px 16px rgba(37, 211, 102, 0.4) !important;
+  }
+
+  .whatsapp-float svg {
+    width: 26px !important;
+    height: 26px !important;
+  }
+
+  .whatsapp-label {
+    display: none !important; /* Hide long label text on mobile screen sizes */
   }
 }
+
 
 /* Copy Track button */
 .copy-track-btn {

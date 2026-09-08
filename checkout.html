@@ -40,65 +40,195 @@
     </div>
   </header>
 
-  <main class="container">
+  <main class="container checkout-page">
     <div class="page-title">
-      <h1>Checkout</h1>
-      <p>Complete your order with UPI payment</p>
+      <h1>Complete Your Order</h1>
+      <p>Direct Pune India Post dispatch &bull; Secure UPI Payment</p>
     </div>
 
-    <form id="checkout-form" onsubmit="submitOrder(event)" style="max-width:650px;margin:0 auto;">
-      <div class="form-group">
-        <label for="customer-name">Full Name</label>
-        <input type="text" id="customer-name" required placeholder="Enter your full name" />
+    <div class="checkout-layout">
+      <!-- LEFT COLUMN: Delivery Details & Payment Information -->
+      <div class="checkout-main-col">
+        <form id="checkout-form" onsubmit="submitOrder(event)">
+          <!-- Step 1: Delivery Information -->
+          <div class="checkout-card">
+            <div class="card-step-header">
+              <span class="step-badge">1</span>
+              <div>
+                <h2>Delivery Details</h2>
+                <p class="step-sub">Enter your address to calculate India Post postage charges</p>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="customer-name">Full Name <span class="req-star">*</span></label>
+              <input type="text" id="customer-name" required placeholder="Full name of recipient" autocomplete="name" />
+            </div>
+
+            <div class="form-group">
+              <label for="customer-phone">Mobile Phone Number <span class="req-star">*</span></label>
+              <input type="tel" id="customer-phone" required placeholder="10-digit mobile number for delivery updates" pattern="[0-9]{10}" autocomplete="tel" />
+            </div>
+
+            <div class="form-group">
+              <label for="customer-street">House / Flat No., Street, Locality & Landmark <span class="req-star">*</span></label>
+              <textarea id="customer-street" required placeholder="e.g. Flat 302, Gokul Dham Apts, Near Krishna Temple, MG Road" rows="2" style="min-height: 70px;"></textarea>
+            </div>
+
+            <!-- PIN Code, City, State Grid -->
+            <div class="form-row address-row">
+              <div class="form-group" style="flex:1.4; min-width:140px;">
+                <div class="pincode-label-row">
+                  <label for="customer-pincode">PIN Code <span class="req-star">*</span></label>
+                  <span id="pincode-badge" class="pincode-status-pill">Enter 6 digits</span>
+                </div>
+                <div class="pincode-input-wrapper">
+                  <input type="text" id="customer-pincode" required placeholder="6-digit PIN" maxlength="6" pattern="[0-9]{6}" autocomplete="postal-code" />
+                  <span id="pincode-spinner" class="pincode-spinner" style="display:none;"></span>
+                </div>
+              </div>
+
+              <div class="form-group" style="flex:1.8; min-width:150px;">
+                <label for="customer-city">City / District <span class="req-star">*</span></label>
+                <input type="text" id="customer-city" required placeholder="e.g. Pune / Mumbai" autocomplete="address-level2" />
+              </div>
+
+              <div class="form-group" style="flex:1.8; min-width:150px;">
+                <label for="customer-state">State <span class="req-star">*</span></label>
+                <input type="text" id="customer-state" required placeholder="e.g. Maharashtra" autocomplete="address-level1" />
+              </div>
+            </div>
+
+            <!-- Delivery Zone Notification Banner -->
+            <div id="delivery-zone-banner" class="zone-banner zone-banner-neutral">
+              <div class="zone-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              </div>
+              <div class="zone-text-group">
+                <strong id="zone-headline">Determining Delivery Zone...</strong>
+                <span id="zone-subtitle">Enter your 6-digit PIN code to check Pune India Post delivery rate</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: UPI Payment -->
+          <div class="checkout-card payment-card">
+            <div class="card-step-header">
+              <span class="step-badge">2</span>
+              <div>
+                <h2>UPI Payment</h2>
+                <p class="step-sub">Scan the QR code or pay via any UPI App</p>
+              </div>
+            </div>
+
+            <div class="upi-box-container">
+              <!-- Exact Payable Amount Highlight -->
+              <div class="payable-highlight-banner">
+                <span class="banner-label">Total Payable Amount:</span>
+                <span class="banner-amount" id="pay-amount">Rs. 0</span>
+              </div>
+
+              <div class="qr-code-center">
+                <div class="qr-code-frame">
+                  <img id="upi-qr-img" src="" alt="UPI Payment QR Code" />
+                  <div id="qr-loading-overlay" class="qr-loading-overlay" style="display:none;">
+                    <div class="spinner-small"></div>
+                  </div>
+                </div>
+                <p class="qr-caption">
+                  Scan using <strong>Google Pay</strong>, <strong>PhonePe</strong>, <strong>Paytm</strong> or <strong>BHIM</strong>
+                </p>
+              </div>
+
+              <!-- UPI ID & Copy Row -->
+              <div class="upi-info-card">
+                <div class="upi-meta">
+                  <span class="upi-meta-title">Payee UPI ID</span>
+                  <strong class="upi-id-string" id="upi-id-display"></strong>
+                </div>
+                <button type="button" class="copy-upi-button" id="copy-upi-btn" onclick="copyUpiId()">
+                  <svg class="copy-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                  <span id="copy-text-label">Copy UPI ID</span>
+                </button>
+              </div>
+
+              <!-- 1-Tap Mobile UPI Intent Button -->
+              <a id="mobile-upi-btn" href="#" class="mobile-pay-action-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                <span>Open UPI App (Mobile Only)</span>
+              </a>
+            </div>
+
+            <!-- Payment Screenshot Upload -->
+            <div class="form-group upload-section">
+              <label>Upload Payment Confirmation Screenshot <span class="req-star">*</span></label>
+              <div class="screenshot-dropzone" id="screenshot-dropzone">
+                <input type="file" id="payment-proof" accept="image/*" required />
+                <div class="dropzone-idle" id="dropzone-idle">
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="dropzone-svg"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                  <span class="dropzone-main-text">Click to choose or drag & drop payment screenshot</span>
+                  <span class="dropzone-sub-text">PNG, JPG, or JPEG format</span>
+                </div>
+                <div class="dropzone-preview" id="dropzone-preview" style="display:none;">
+                  <img id="preview-image" src="" alt="Payment screenshot preview" />
+                  <div class="preview-meta">
+                    <span id="preview-filename" class="preview-name">screenshot.png</span>
+                    <button type="button" class="btn-remove-preview" onclick="clearProofUpload(event)">
+                      Change Image
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" id="submit-order-btn" class="submit-order-action-btn">
+              <span>Place Order</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+          </div>
+        </form>
       </div>
 
-      <div class="form-group">
-        <label for="customer-phone">Phone Number</label>
-        <input type="tel" id="customer-phone" required placeholder="10-digit mobile number" pattern="[0-9]{10}" />
-      </div>
+      <!-- RIGHT COLUMN: Sticky Live Order Summary & Parcel Weight -->
+      <aside class="checkout-summary-col">
+        <div class="sticky-summary-box">
+          <div class="summary-header-row">
+            <h3>Order Summary</h3>
+            <span id="summary-items-count" class="items-count-pill">0 items</span>
+          </div>
 
-      <div class="form-group">
-        <label for="customer-street">Street Address</label>
-        <textarea id="customer-street" required placeholder="Flat / House No. / Street / Area / Landmark" rows="2" style="min-height: 70px;"></textarea>
-      </div>
+          <!-- Items List with Mini Covers -->
+          <div id="checkout-items-list" class="checkout-items-container">
+            <!-- Populated via JS -->
+          </div>
 
-      <div class="form-row" style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1.5rem;">
-        <div class="form-group" style="flex:2; min-width:180px; margin-bottom:0;">
-          <label for="customer-city">City</label>
-          <input type="text" id="customer-city" required placeholder="e.g. Mumbai" style="width:100%;" />
+          <!-- Price Calculation Lines -->
+          <div class="summary-price-breakdown">
+            <div class="price-line">
+              <span>Books Subtotal</span>
+              <span id="summary-subtotal" class="price-num">Rs. 0</span>
+            </div>
+            <div class="price-line shipping-price-line">
+              <div>
+                <span>Postage / Courier</span>
+                <span id="shipping-rate-slab-badge" class="slab-badge">India Post Pune</span>
+              </div>
+              <span id="summary-shipping" class="price-num">Rs. 0</span>
+            </div>
+            <div class="price-line total-price-line">
+              <span>Total Amount</span>
+              <span id="summary-total-amount" class="price-num-total">Rs. 0</span>
+            </div>
+          </div>
+
+          <!-- Trust & Dispatch Note -->
+          <div class="shipping-trust-badge">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            <p>Shipped safely from <strong>Pune via India Post</strong>. Secure packing ensures devotional books arrive in pristine condition.</p>
+          </div>
         </div>
-        <div class="form-group" style="flex:1.5; min-width:120px; margin-bottom:0;">
-          <label for="customer-state">State</label>
-          <input type="text" id="customer-state" required placeholder="e.g. MH" style="width:100%;" />
-        </div>
-        <div class="form-group" style="flex:1.5; min-width:140px; margin-bottom:0;">
-          <label for="customer-pincode">PIN Code</label>
-          <input type="text" id="customer-pincode" required placeholder="6-digit code" pattern="[0-9]{6}" style="width:100%;" />
-        </div>
-      </div>
-
-      <div class="payment-section">
-        <h2>Payment via UPI</h2>
-        <p style="margin-bottom:1rem;color:var(--text-secondary);">Scan the QR code or use the UPI ID below to pay <strong id="pay-amount" style="color:var(--accent);font-size:1.25rem;">Rs. 0</strong></p>
-        <div class="qr-code">
-          <img src="assets/qr-code.png" alt="UPI QR Code" onerror="this.style.display='none';this.parentElement.textContent='Place your UPI QR code here';" />
-        </div>
-        <p style="color:var(--text-secondary);">UPI ID:</p>
-        <span class="upi-id" id="upi-id-display"></span>
-      </div>
-
-      <div class="form-group">
-        <label>Upload Payment Screenshot</label>
-        <div class="file-upload">
-          <input type="file" id="payment-proof" accept="image/*" required />
-          <label for="payment-proof" class="file-upload-label">
-            Click or drag to upload payment screenshot
-          </label>
-        </div>
-      </div>
-
-      <button type="submit" id="submit-order-btn" class="checkout-btn">Place Order</button>
-    </form>
+      </aside>
+    </div>
   </main>
 
   <footer>
@@ -115,23 +245,5 @@
   <script src="js/books.js"></script>
   <script src="js/cart.js"></script>
   <script src="js/checkout.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', async () => {
-      const cart = getCart();
-      if (cart.length === 0) {
-        window.location.href = 'cart.html';
-        return;
-      }
-      await fetchBooks();
-      const total = getCartTotal() + CONFIG.DELIVERY_CHARGE;
-      document.getElementById('pay-amount').textContent = `Rs. ${total}`;
-      document.getElementById('upi-id-display').textContent = CONFIG.UPI_ID;
-    });
-
-    document.getElementById('payment-proof').addEventListener('change', function() {
-      const label = document.querySelector('.file-upload-label');
-      label.textContent = this.files[0] ? `Selected: ${this.files[0].name}` : 'Click or drag to upload payment screenshot';
-    });
-  </script>
 </body>
 </html>

@@ -48,14 +48,20 @@ async function trackOrders(event) {
             `;
           }).join('')}
         </div>
-        <div class="summary-row">
-          <span>Subtotal</span>
-          <span>Rs. ${order.total_amount - CONFIG.DELIVERY_CHARGE}</span>
-        </div>
-        <div class="summary-row">
-          <span>Delivery</span>
-          <span>Rs. ${CONFIG.DELIVERY_CHARGE}</span>
-        </div>
+        ${(() => {
+          const itemsSubtotal = (order.order_items || []).reduce((sum, item) => sum + (item.price * item.quantity), 0);
+          const deliveryFee = Math.max(0, order.total_amount - itemsSubtotal);
+          return `
+            <div class="summary-row">
+              <span>Books Subtotal</span>
+              <span>Rs. ${itemsSubtotal}</span>
+            </div>
+            <div class="summary-row">
+              <span>Postage / Courier</span>
+              <span>Rs. ${deliveryFee}</span>
+            </div>
+          `;
+        })()}
         <div class="summary-row total-row">
           <span>Total</span>
           <span>Rs. ${order.total_amount}</span>

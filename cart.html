@@ -127,28 +127,41 @@
 
       const subtotal = getCartTotal();
       const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-      const deliveryCharge = CONFIG.DELIVERY_CHARGE;
-      const totalPayable = subtotal + deliveryCharge;
+
+      // Compute total book weight + packing weight
+      let totalBookWeight = 0;
+      cart.forEach(item => {
+        const book = BOOKS.find(b => b.id === item.bookId);
+        const w = (book && book.weight_grams != null && Number(book.weight_grams) > 0)
+          ? Number(book.weight_grams)
+          : (CONFIG.DEFAULT_BOOK_WEIGHT_GRAMS || 150);
+        totalBookWeight += (w * item.quantity);
+      });
+      const packingWeight = CONFIG.PACKING_WEIGHT_GRAMS || 20;
+      const totalWeight = totalBookWeight + packingWeight;
 
       const summaryHtml = `
         <div class="bookwagon-summary">
           <div class="summary-left-col">
             <div class="summary-line"><span>Total Items</span><span>${totalItems}</span></div>
             <div class="summary-line"><span>Total Gross</span><span>Rs. ${subtotal}</span></div>
-            <p class="delivery-estimate-text" style="display: flex; align-items: center; gap: 0.4rem;">
+            <p class="delivery-estimate-text" style="display: flex; align-items: center; gap: 0.4rem; margin-top:0.4rem;">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle;">
                 <rect x="1" y="3" width="15" height="13"></rect>
                 <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
                 <circle cx="5.5" cy="18.5" r="2.5"></circle>
                 <circle cx="18.5" cy="18.5" r="2.5"></circle>
               </svg>
-              Ships within 10-15 days.
+              Dispatched from Pune via India Post.
             </p>
           </div>
           <div class="summary-right-col">
-            <div class="summary-line"><span>Shipping</span><span>Rs. ${deliveryCharge}</span></div>
-            <div class="summary-line total-payable-line"><span>Amount Payable</span><span>Rs. ${totalPayable}</span></div>
-            <a href="checkout.html" style="text-decoration:none;"><button class="bookwagon-checkout-btn">Proceed to Checkout</button></a>
+            <div class="summary-line">
+              <span>Postage</span>
+              <span style="font-size:0.86rem;color:var(--saffron-dark);font-weight:600;">Calculated at checkout</span>
+            </div>
+            <div class="summary-line total-payable-line"><span>Cart Subtotal</span><span>Rs. ${subtotal}</span></div>
+            <a href="checkout.html" style="text-decoration:none;"><button class="bookwagon-checkout-btn">Proceed to Checkout &rarr;</button></a>
           </div>
         </div>
       `;

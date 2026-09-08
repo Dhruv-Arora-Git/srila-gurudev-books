@@ -414,20 +414,21 @@ function updateZoneBanner(pincode, state, shippingResult) {
  */
 function updateDynamicPayment(totalAmount) {
   const upiIdDisplay = document.getElementById('upi-id-display');
+  const upiNameDisplay = document.getElementById('upi-name-display');
   const qrImg = document.getElementById('upi-qr-img');
   const mobileBtn = document.getElementById('mobile-upi-btn');
 
   if (upiIdDisplay) upiIdDisplay.textContent = CONFIG.UPI_ID;
+  if (upiNameDisplay) upiNameDisplay.textContent = CONFIG.UPI_NAME || 'SURYA KANTA DAS';
 
-  // Standard UPI URI format
+  // Standard UPI URI format for mobile 1-tap checkout
   const cleanUpiId = CONFIG.UPI_ID.trim();
-  const payeeName = (CONFIG.UPI_NAME || 'Gurudev Books Store').trim();
+  const payeeName = (CONFIG.UPI_NAME || 'SURYA KANTA DAS').trim();
   const upiUrl = `upi://pay?pa=${encodeURIComponent(cleanUpiId)}&pn=${encodeURIComponent(payeeName)}&am=${totalAmount}&cu=INR&tn=${encodeURIComponent('Gurudev Books Order')}`;
 
   if (qrImg) {
-    // Generate QR using high-resolution API with margin
-    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(upiUrl)}&margin=6&format=svg`;
-    qrImg.src = qrApiUrl;
+    // Official Bank of Baroda UPI QR code image
+    qrImg.src = 'assets/qr-code.png';
   }
 
   if (mobileBtn) {

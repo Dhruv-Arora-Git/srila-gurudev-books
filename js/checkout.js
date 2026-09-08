@@ -422,9 +422,10 @@ function updateDynamicPayment(totalAmount) {
   if (upiNameDisplay) upiNameDisplay.textContent = CONFIG.UPI_NAME || 'SURYA KANTA DAS';
 
   // Standard UPI URI format for mobile 1-tap checkout
-  const cleanUpiId = CONFIG.UPI_ID.trim();
+  // Crucial: Keep literal '@' in pa and clean spaces in pn so Google Pay and other UPI apps resolve the account successfully
+  const cleanUpiId = (CONFIG.UPI_ID || '8007768327@barodampay').trim();
   const payeeName = (CONFIG.UPI_NAME || 'SURYA KANTA DAS').trim();
-  const upiUrl = `upi://pay?pa=${encodeURIComponent(cleanUpiId)}&pn=${encodeURIComponent(payeeName)}&am=${totalAmount}&cu=INR&tn=${encodeURIComponent('Gurudev Books Order')}`;
+  const upiUrl = `upi://pay?pa=${cleanUpiId}&pn=${payeeName}&am=${totalAmount}&cu=INR&mode=01&purpose=00&tn=Gurudev Books`;
 
   if (qrImg) {
     // Official Bank of Baroda UPI QR code image

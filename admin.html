@@ -463,14 +463,7 @@
           </svg>
           Track Order
         </a>
-        <a href="admin.html" class="nav-link">
-          <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-          </svg>
-          Admin
-        </a>
+
         <a href="cart.html" class="nav-link">
           <div class="cart-icon-wrapper">
             <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -542,6 +535,30 @@
               <line x1="16" y1="13" x2="8" y2="13"></line>
               <line x1="16" y1="17" x2="8" y2="17"></line>
             </svg> Export CSV</button>
+        </div>
+
+        <!-- Data Isolation Scope Bar -->
+        <div class="scope-bar" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:0.75rem;padding:0.75rem 1rem;background:white;border-radius:var(--radius-sm);border:1px solid #E7E5E4;">
+          <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+            <span style="font-size:0.78rem;text-transform:uppercase;letter-spacing:0.5px;font-weight:700;color:var(--text-muted);">Data View:</span>
+            <button type="button" class="scope-btn active" id="scope-btn-prod" onclick="setScope('production')" style="padding:0.35rem 0.85rem;border-radius:20px;border:1.5px solid var(--maroon);background:var(--maroon);color:white;font-size:0.8rem;font-weight:600;cursor:pointer;transition:var(--transition-fast);">📦 Real Orders</button>
+            <button type="button" class="scope-btn" id="scope-btn-test" onclick="setScope('test')" style="padding:0.35rem 0.85rem;border-radius:20px;border:1.5px solid #E7E5E4;background:white;color:var(--text);font-size:0.8rem;font-weight:600;cursor:pointer;transition:var(--transition-fast);">🧪 Test Orders Only</button>
+            <button type="button" class="scope-btn" id="scope-btn-all" onclick="setScope('all')" style="padding:0.35rem 0.85rem;border-radius:20px;border:1.5px solid #E7E5E4;background:white;color:var(--text);font-size:0.8rem;font-weight:600;cursor:pointer;transition:var(--transition-fast);">All Orders</button>
+          </div>
+          <div style="display:flex;gap:0.5rem;align-items:center;">
+            <a href="checkout.html?test=1" target="_blank" class="proof-btn" style="background:#FEF3C7;color:#D97706;border:1px solid #FDE68A;padding:0.45rem 0.85rem;font-size:0.8rem;text-decoration:none;margin:0;display:inline-flex;align-items:center;gap:0.35rem;" title="Launch Test Mode Checkout as authenticated Admin">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.31"></path><path d="M14 9.3V2"></path><path d="M8.5 2h7"></path><path d="M14 9.3a6.5 6.5 0 1 1-4 0"></path><path d="M5.52 16h12.96"></path></svg>
+              🧪 Test Checkout
+            </a>
+            <button type="button" class="proof-btn" id="purge-test-btn" onclick="purgeAllTestOrders()" style="background:#FEE2E2;color:#DC2626;border-color:#FCA5A5;padding:0.45rem 0.85rem;font-size:0.8rem;margin:0;display:inline-flex;align-items:center;gap:0.35rem;" title="Permanently clean up test orders from database">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              Purge Test Orders
+            </button>
+            <a href="test-runner.html" target="_blank" class="proof-btn" style="background:#EDE9FE;color:#7C3AED;border-color:#DDD6FE;padding:0.45rem 0.85rem;font-size:0.8rem;text-decoration:none;margin:0;display:inline-flex;align-items:center;gap:0.35rem;" title="Open Automated Test Suite & Diagnostics">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              Test Runner
+            </a>
+          </div>
         </div>
 
         <div class="filters">
@@ -668,6 +685,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="js/security.js"></script>
   <script src="js/config.js"></script>
   <script src="js/books.js"></script>
   <script src="js/cart.js"></script>

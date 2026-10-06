@@ -1,3 +1,9 @@
+function getCatalog() {
+  if (typeof BOOKS !== 'undefined' && Array.isArray(BOOKS) && BOOKS.length > 0) return BOOKS;
+  if (typeof window !== 'undefined' && Array.isArray(window.BOOKS) && window.BOOKS.length > 0) return window.BOOKS;
+  return [];
+}
+
 function getCart() {
   return JSON.parse(localStorage.getItem('cart') || '[]');
 }
@@ -10,7 +16,8 @@ function saveCart(cart) {
 function addToCart(bookId, quantity) {
   const cart = getCart();
   const existing = cart.find(item => item.bookId === bookId);
-  const book = BOOKS.find(b => b.id === bookId);
+  const catalog = getCatalog();
+  const book = catalog.find(b => b.id === bookId);
   const stock = book ? book.stock_quantity : 0;
 
   if (stock <= 0) {
@@ -37,7 +44,8 @@ function updateQuantity(bookId, quantity) {
   const cart = getCart();
   const item = cart.find(item => item.bookId === bookId);
   if (item) {
-    const book = BOOKS.find(b => b.id === bookId);
+    const catalog = getCatalog();
+    const book = catalog.find(b => b.id === bookId);
     const stock = book ? book.stock_quantity : 10;
 
     let targetQty = quantity;
@@ -66,18 +74,24 @@ function clearCart() {
 
 function getCartTotal() {
   const cart = getCart();
+  const catalog = getCatalog();
   return cart.reduce((total, item) => {
-    const book = BOOKS.find(b => b.id === item.bookId);
+    const book = catalog.find(b => b.id === item.bookId);
     if (!book) return total;
     return total + (book.price * item.quantity);
   }, 0);
 }
 
+function getCartCount() {
+  const cart = getCart();
+  return cart.reduce((sum, item) => sum + item.quantity, 0);
+}
+
 function updateCartBadge() {
+  if (typeof document === 'undefined') return;
   const badge = document.getElementById('cart-badge');
   if (!badge) return;
-  const cart = getCart();
-  const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const count = getCartCount();
 
   const oldCount = parseInt(badge.textContent || '0');
   badge.textContent = count;
@@ -96,6 +110,7 @@ function updateCartBadge() {
 // ============================================
 
 function showToast(message, type = 'success') {
+  if (typeof document === 'undefined') return;
   if (typeof Swal === 'undefined') {
     // Fallback if CDN failed or is not loaded yet
     console.warn('SweetAlert2 not loaded, using fallback toast:', message);
@@ -169,4 +184,20 @@ function showConfirm(title, message) {
   });
 }
 
-document.addEventListener('DOMContentLoaded', updateCartBadge);
+if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', updateCartBadge);
+}
+
+// Node.js module export for testing framework
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    getCart,
+    saveCart,
+    addToCart,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
+    getCartTotal,
+    getCartCount
+  };
+}

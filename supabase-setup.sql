@@ -36,8 +36,9 @@ CREATE TABLE IF NOT EXISTS orders (
   updated_at timestamptz DEFAULT now()
 );
 
--- Ensure tracking_link column exists if table was already created
+-- Ensure tracking_link and is_test columns exist if table was already created
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS tracking_link text;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS is_test boolean NOT NULL DEFAULT false;
 
 -- 3. Create Order Items Table
 CREATE TABLE IF NOT EXISTS order_items (
@@ -123,10 +124,14 @@ CREATE POLICY "Admins can view all orders" ON orders FOR SELECT
   USING (auth.role() = 'authenticated' AND (lower(auth.jwt() ->> 'email') = 'admin1@srilagurudev.com'));
 CREATE POLICY "Admins can update orders" ON orders FOR UPDATE 
   USING (auth.role() = 'authenticated' AND (lower(auth.jwt() ->> 'email') = 'admin1@srilagurudev.com'));
+CREATE POLICY "Admins can delete orders" ON orders FOR DELETE 
+  USING (auth.role() = 'authenticated' AND (lower(auth.jwt() ->> 'email') = 'admin1@srilagurudev.com'));
 
 -- Order Items Table Policies
 CREATE POLICY "Anyone can create order items" ON order_items FOR INSERT WITH CHECK (true);
 CREATE POLICY "Admins can view all order items" ON order_items FOR SELECT 
+  USING (auth.role() = 'authenticated' AND (lower(auth.jwt() ->> 'email') = 'admin1@srilagurudev.com'));
+CREATE POLICY "Admins can delete order items" ON order_items FOR DELETE 
   USING (auth.role() = 'authenticated' AND (lower(auth.jwt() ->> 'email') = 'admin1@srilagurudev.com'));
 
 -- Storage Bucket Policies
@@ -139,10 +144,23 @@ CREATE POLICY "Admins can manage book covers" ON storage.objects FOR ALL
   USING (bucket_id = 'book-covers' AND auth.role() = 'authenticated' AND (lower(auth.jwt() ->> 'email') = 'admin1@srilagurudev.com'));
 
 
--- 7. Database Triggers for Stock Management
+-- 7. Database Triggers for Stock Management (with Test Data Isolation)
 CREATE OR REPLACE FUNCTION decrement_book_stock()
 RETURNS TRIGGER AS $$
+DECLARE
+  v_is_test boolean := false;
 BEGIN
+  -- Verify if parent order is flagged as a test order
+  SELECT coalesce(is_test, false) INTO v_is_test 
+  FROM orders 
+  WHERE id = NEW.order_id;
+
+  -- CRITICAL TEST ISOLATION:
+  -- If this is a test order, do NOT decrement physical inventory!
+  IF v_is_test IS TRUE THEN
+    RETURN NEW;
+  END IF;
+
   -- Verify if book exists and check stock
   IF NOT EXISTS (SELECT 1 FROM books WHERE id = NEW.book_id) THEN
     RAISE EXCEPTION 'Book with ID % does not exist', NEW.book_id;
@@ -168,7 +186,19 @@ CREATE TRIGGER trg_decrement_stock
 
 CREATE OR REPLACE FUNCTION restore_book_stock()
 RETURNS TRIGGER AS $$
+DECLARE
+  v_is_test boolean := false;
 BEGIN
+  -- Check if order was a test order
+  SELECT coalesce(is_test, false) INTO v_is_test 
+  FROM orders 
+  WHERE id = OLD.order_id;
+
+  -- If this was a test order, stock was never decremented, so don't increment it
+  IF v_is_test IS TRUE THEN
+    RETURN OLD;
+  END IF;
+
   UPDATE books
   SET stock_quantity = stock_quantity + OLD.quantity
   WHERE id = OLD.book_id;
@@ -184,7 +214,7 @@ CREATE TRIGGER trg_restore_stock
   EXECUTE FUNCTION restore_book_stock();
 
 
--- 8. Secure RPC Function for Customer Order Tracking
+-- 8. Secure RPC Function for Customer Order Tracking (Hides internal test orders)
 DROP FUNCTION IF EXISTS get_customer_orders_by_phone(text);
 CREATE OR REPLACE FUNCTION get_customer_orders_by_phone(customer_phone text)
 RETURNS TABLE (
@@ -195,8 +225,9 @@ RETURNS TABLE (
   total_amount integer,
   status text,
   tracking_number text,
-  tracking_link text, -- Added tracking link to output table
+  tracking_link text, -- Tracking URL
   created_at timestamptz,
+  is_test boolean,
   order_items jsonb
 ) SECURITY DEFINER AS $$
 BEGIN
@@ -209,8 +240,9 @@ BEGIN
     o.total_amount,
     o.status,
     o.tracking_number,
-    o.tracking_link, -- Added to select
+    o.tracking_link,
     o.created_at,
+    o.is_test,
     coalesce(
       jsonb_agg(
         jsonb_build_object(
@@ -224,6 +256,8 @@ BEGIN
   FROM orders o
   LEFT JOIN order_items oi ON oi.order_id = o.id
   WHERE o.phone = customer_phone
+    -- SECURITY & TEST ISOLATION: Hide internal test orders from public customer lookups
+    AND coalesce(o.is_test, false) = false
   GROUP BY o.id
   ORDER BY o.created_at DESC;
 END;
@@ -231,25 +265,44 @@ $$ LANGUAGE plpgsql;
 
 GRANT EXECUTE ON FUNCTION get_customer_orders_by_phone(text) TO anon, authenticated;
 
--- 9. Secure Atomic Transaction RPC to Create Order and Order Items (checks/decrements stock)
+-- 9. Secure Atomic Transaction RPC to Create Order and Order Items (Supports is_test flag & Security Gate)
+DROP FUNCTION IF EXISTS create_order_with_items(text, text, text, integer, text, jsonb);
+DROP FUNCTION IF EXISTS create_order_with_items(text, text, text, integer, text, jsonb, boolean);
+DROP FUNCTION IF EXISTS create_order_with_items(text, text, text, integer, text, jsonb, boolean, text);
+
 CREATE OR REPLACE FUNCTION create_order_with_items(
   cust_name text,
   cust_phone text,
   cust_address text,
   total_amt integer,
   proof_url text,
-  items jsonb
+  items jsonb,
+  is_test boolean DEFAULT false,
+  test_secret text DEFAULT NULL
 ) RETURNS uuid SECURITY DEFINER AS $$
 DECLARE
   new_order_id uuid;
   item_rec json;
+  v_is_test boolean := false;
 BEGIN
-  -- 1. Insert the order
-  INSERT INTO orders (customer_name, phone, address, total_amount, status, payment_proof_url)
-  VALUES (cust_name, cust_phone, cust_address, total_amt, 'Payment Verification is Pending', proof_url)
+  -- DATABASE-LEVEL ANTI-TAMPERING SECURITY CHECK:
+  -- Only authenticated admins or callers with the valid test secret can create test orders.
+  IF coalesce(is_test, false) IS TRUE THEN
+    IF (auth.role() = 'authenticated' AND lower(auth.jwt() ->> 'email') = 'admin1@srilagurudev.com')
+       OR (test_secret IS NOT NULL AND test_secret = 'gurudev_test_2026') THEN
+      v_is_test := true;
+    ELSE
+      -- Block unauthorized tampering: Reject the request immediately!
+      RAISE EXCEPTION 'Access Denied: Only store administrators can create test orders.';
+    END IF;
+  END IF;
+
+  -- 1. Insert the order with test isolation tag
+  INSERT INTO orders (customer_name, phone, address, total_amount, status, payment_proof_url, is_test)
+  VALUES (cust_name, cust_phone, cust_address, total_amt, 'Payment Verification is Pending', proof_url, v_is_test)
   RETURNING id INTO new_order_id;
 
-  -- 2. Insert items and check/decrement stock
+  -- 2. Insert items and check/decrement stock (trigger handles is_test automatically)
   FOR item_rec IN SELECT * FROM jsonb_array_elements(items)
   LOOP
     INSERT INTO order_items (order_id, book_id, quantity, price)
@@ -265,9 +318,28 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-GRANT EXECUTE ON FUNCTION create_order_with_items(text, text, text, integer, text, jsonb) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION create_order_with_items(text, text, text, integer, text, jsonb, boolean, text) TO anon, authenticated;
 
--- 7. Update old status text to the new standard
+-- 10. Admin RPC to Purge Test Orders (Authenticated Admin Only)
+DROP FUNCTION IF EXISTS delete_all_test_orders();
+CREATE OR REPLACE FUNCTION delete_all_test_orders()
+RETURNS integer SECURITY DEFINER AS $$
+DECLARE
+  v_count integer := 0;
+BEGIN
+  IF auth.role() <> 'authenticated' OR lower(auth.jwt() ->> 'email') <> 'admin1@srilagurudev.com' THEN
+    RAISE EXCEPTION 'Access Denied: Only authenticated administrators can purge test orders';
+  END IF;
+
+  DELETE FROM orders WHERE is_test = true;
+  GET DIAGNOSTICS v_count = ROW_COUNT;
+  RETURN v_count;
+END;
+$$ LANGUAGE plpgsql;
+
+GRANT EXECUTE ON FUNCTION delete_all_test_orders() TO authenticated;
+
+-- 11. Update old status text to the new standard
 UPDATE orders 
 SET status = 'Payment Verification is Pending' 
 WHERE status = 'Payment Pending';

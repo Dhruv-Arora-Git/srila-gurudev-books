@@ -1,0 +1,10 @@
+{
+  "name": "gurudev-books-store",
+  "version": "1.0.0",
+  "description": "Gurudev Books Online Store with India Post Courier Tariff & Test Isolation",
+  "scripts": {
+    "test": "node tests/run-tests.js"
+  },
+  "author": "Sri Gour Govinda Swami Seva",
+  "license": "MIT"
+}

@@ -1,7 +1,23 @@
 let currentFilter = 'all';
+let currentScope = 'production'; // 'production' (default) | 'test' | 'all'
 let allOrders = [];
 let currentSession = null;
 let currentTab = 'orders';
+
+function setScope(scope) {
+  currentScope = scope;
+  ['prod', 'test', 'all'].forEach(s => {
+    const btn = document.getElementById(`scope-btn-${s}`);
+    if (btn) {
+      const isActive = (s === 'prod' && scope === 'production') || (s === 'test' && scope === 'test') || (s === 'all' && scope === 'all');
+      btn.style.background = isActive ? 'var(--maroon)' : 'white';
+      btn.style.color = isActive ? 'white' : 'var(--text)';
+      btn.style.borderColor = isActive ? 'var(--maroon)' : '#E7E5E4';
+    }
+  });
+  renderDashboard();
+}
+
 
 async function checkAuth() {
   const savedSession = localStorage.getItem('admin_session');
@@ -154,14 +170,16 @@ function renderStats() {
   const delivered = orders.filter(o => o.status === 'Delivered').length;
   const lakshmi = orders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
 
+  const scopeLabel = currentScope === 'test' ? ' (Sandbox Test)' : currentScope === 'all' ? ' (Combined)' : '';
+
   document.getElementById('stats-grid').innerHTML = `
     <div class="stat-card">
       <div class="stat-number">${total}</div>
-      <div class="stat-label">Total Orders</div>
+      <div class="stat-label">Total Orders${scopeLabel}</div>
     </div>
     <div class="stat-card pending">
       <div class="stat-number">${pending}</div>
-      <div class="stat-label">Payment Verification is Pending</div>
+      <div class="stat-label">Payment Verification Pending</div>
     </div>
     <div class="stat-card verified">
       <div class="stat-number">${verified}</div>
@@ -177,7 +195,7 @@ function renderStats() {
     </div>
     <div class="stat-card lakshmi">
       <div class="stat-number">Rs. ${lakshmi.toLocaleString('en-IN')}</div>
-      <div class="stat-label">Total Lakshmi</div>
+      <div class="stat-label">Total Lakshmi${scopeLabel}</div>
     </div>
   `;
 }
@@ -186,6 +204,13 @@ function getFilteredOrders() {
   const searchTerm = document.getElementById('search-input')?.value?.toLowerCase().trim() || '';
 
   let filtered = allOrders;
+
+  // Enforce Data Isolation: separate Real Production Orders from Sandbox Test Orders
+  if (currentScope === 'production') {
+    filtered = filtered.filter(order => order.is_test !== true);
+  } else if (currentScope === 'test') {
+    filtered = filtered.filter(order => order.is_test === true);
+  }
 
   if (searchTerm) {
     filtered = filtered.filter(order => {
@@ -229,11 +254,13 @@ function renderOrders() {
 
   let html = '';
   Object.values(userGroups).forEach(user => {
+    const safeUserPhone = escapeHtml(user.phone);
+    const safeUserName = escapeHtml(user.name);
     html += `
       <div class="user-group">
         <div class="user-group-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
-          <span class="user-phone" style="display: inline-flex; align-items: center; gap: 0.35rem;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>${user.phone}</span>
-          <span class="user-name">${user.name}</span>
+          <span class="user-phone" style="display: inline-flex; align-items: center; gap: 0.35rem;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>${safeUserPhone}</span>
+          <span class="user-name">${safeUserName}</span>
           <span class="user-order-count">${user.orders.length} order${user.orders.length > 1 ? 's' : ''}</span>
         </div>
         <div class="user-orders">
@@ -249,6 +276,12 @@ function renderOrders() {
 function renderOrderCard(order) {
   let shippingLabelText = '';
   const rawAddress = order.address || '';
+  const safeName = escapeHtml(order.customer_name);
+  const safePhone = escapeHtml(order.phone);
+  const safeStatus = escapeHtml(order.status);
+  const safeOrderId = escapeHtml(order.id);
+  const isTestOrder = Boolean(order.is_test);
+
   if (rawAddress.includes(' | ')) {
     const parts = rawAddress.split(' | ');
     const street = parts[0] || '';
@@ -267,11 +300,11 @@ function renderOrderCard(order) {
     minute: '2-digit'
   });
 
-  const statusClass = order.status.toLowerCase().replace(/\s+/g, '-');
+  const statusClass = (order.status || '').toLowerCase().replace(/\s+/g, '-');
 
   const itemsHtml = (order.order_items || []).map(item => {
     const book = BOOKS.find(b => b.id === item.book_id);
-    const title = book ? book.title : `Book #${item.book_id}`;
+    const title = book ? escapeHtml(book.title) : `Book #${escapeHtml(item.book_id)}`;
     return `
       <div class="order-item-mini">
         <span>${title} &times; ${item.quantity}</span>
@@ -281,32 +314,39 @@ function renderOrderCard(order) {
   }).join('');
 
   const proofBtn = order.payment_proof_url
-    ? `<button class="proof-btn" onclick="openProofModal('${order.payment_proof_url}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align: middle; margin-right:4px;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg> View Payment Proof</button>`
+    ? `<button class="proof-btn" onclick="openProofModal('${escapeHtml(order.payment_proof_url)}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align: middle; margin-right:4px;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg> View Payment Proof</button>`
     : '';
 
   let trackingHtml = '';
   if (order.tracking_number || order.tracking_link) {
+    const safeTrackNum = escapeHtml(order.tracking_number || '');
+    const safeTrackLink = escapeHtml(order.tracking_link || '');
     trackingHtml = `
       <div style="margin-top:0.65rem;font-size:0.83rem;background:var(--purple-light);padding:0.5rem 0.75rem;border-radius:var(--radius-sm);line-height:1.4;display:inline-block;max-width:100%;">
-        ${order.tracking_number ? `<p style="color:var(--purple);margin:0;"><strong>Tracking #:</strong> ${order.tracking_number}</p>` : ''}
-        ${order.tracking_link ? `<p style="color:var(--purple);margin:2px 0 0 0;word-break:break-all;"><strong>Link:</strong> <a href="${order.tracking_link}" target="_blank" style="text-decoration:underline;color:var(--purple);font-weight:600;">${order.tracking_link}</a></p>` : ''}
+        ${safeTrackNum ? `<p style="color:var(--purple);margin:0;"><strong>Tracking #:</strong> ${safeTrackNum}</p>` : ''}
+        ${safeTrackLink ? `<p style="color:var(--purple);margin:2px 0 0 0;word-break:break-all;"><strong>Link:</strong> <a href="${safeTrackLink}" target="_blank" rel="noopener noreferrer" style="text-decoration:underline;color:var(--purple);font-weight:600;">${safeTrackLink}</a></p>` : ''}
       </div>
     `;
   }
 
+  const testBadge = isTestOrder
+    ? `<span style="background:#FEF3C7;color:#92400E;border:1px solid #F59E0B;padding:0.2rem 0.55rem;border-radius:4px;font-weight:700;font-size:0.75rem;letter-spacing:0.5px;display:inline-flex;align-items:center;gap:0.3rem;">🧪 TEST ORDER</span>`
+    : '';
+
   return `
-    <div class="order-card-admin">
-      <div class="order-top-row">
+    <div class="order-card-admin" style="${isTestOrder ? 'border:1.5px dashed #F59E0B;background:#FFFDF7;' : ''}">
+      <div class="order-top-row" style="flex-wrap:wrap;gap:0.5rem;align-items:center;">
         <span class="order-id-badge">Order #${order.id.slice(0, 8).toUpperCase()}</span>
         <span class="order-date-small">${date}</span>
-        <span class="status-badge status-${statusClass}">${order.status}</span>
-        <button class="proof-btn" onclick="deleteOrder('${order.id}')" style="margin:0 0 0 auto;padding:0.35rem 0.65rem;font-size:0.75rem;background:var(--danger-light);color:var(--danger);">Delete Order</button>
+        <span class="status-badge status-${statusClass}">${safeStatus}</span>
+        ${testBadge}
+        <button class="proof-btn" onclick="deleteOrder('${safeOrderId}')" style="margin:0 0 0 auto;padding:0.35rem 0.65rem;font-size:0.75rem;background:var(--danger-light);color:var(--danger);">Delete Order</button>
       </div>
 
       <div class="order-address" style="line-height:1.5; margin-bottom:1.25rem;">
-        <div style="background:#F5F5F4; border:1px solid #E7E5E4; padding:0.85rem 1.15rem; border-radius:var(--radius-sm); font-family:monospace; white-space:pre-wrap; font-size:0.88rem; color:var(--text); box-shadow:inset 0 1px 3px rgba(0,0,0,0.02);" id="shipping-label-${order.id}">${shippingLabelText}</div>
-        <button class="copy-address-btn" onclick="copyShippingLabel('${order.id}', this)">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+        <div style="background:#F5F5F4; border:1px solid #E7E5E4; padding:0.85rem 1.15rem; border-radius:var(--radius-sm); font-family:monospace; white-space:pre-wrap; font-size:0.88rem; color:var(--text); box-shadow:inset 0 1px 3px rgba(0,0,0,0.02);" id="shipping-label-${safeOrderId}">${escapeHtml(shippingLabelText)}</div>
+        <button class="copy-address-btn" onclick="copyShippingLabel('${safeOrderId}', this)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v1"></path></svg>
           Copy Shipping Address
         </button>
       </div>
@@ -324,16 +364,16 @@ function renderOrderCard(order) {
       ${trackingHtml}
 
       <div class="order-actions">
-        <select class="status-select-admin" id="status-${order.id}">
+        <select class="status-select-admin" id="status-${safeOrderId}">
           <option value="Order Placed" ${order.status === 'Order Placed' ? 'selected' : ''}>Order Placed</option>
           <option value="Payment Verification is Pending" ${order.status === 'Payment Verification is Pending' ? 'selected' : ''}>Payment Verification is Pending</option>
           <option value="Payment Verified" ${order.status === 'Payment Verified' ? 'selected' : ''}>Payment Verified</option>
           <option value="Shipped" ${order.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
           <option value="Delivered" ${order.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
         </select>
-        <input type="text" class="tracking-input-admin" id="tracking-num-${order.id}" placeholder="Tracking #" value="${order.tracking_number || ''}" style="width:130px;" />
-        <input type="text" class="tracking-input-admin" id="tracking-link-${order.id}" placeholder="Tracking Link" value="${order.tracking_link || ''}" style="flex:1;min-width:140px;" />
-        <button class="update-btn-admin" onclick="updateOrder('${order.id}')">Update</button>
+        <input type="text" class="tracking-input-admin" id="tracking-num-${safeOrderId}" placeholder="Tracking #" value="${escapeHtml(order.tracking_number || '')}" style="width:130px;" />
+        <input type="text" class="tracking-input-admin" id="tracking-link-${safeOrderId}" placeholder="Tracking Link" value="${escapeHtml(order.tracking_link || '')}" style="flex:1;min-width:140px;" />
+        <button class="update-btn-admin" onclick="updateOrder('${safeOrderId}')">Update</button>
       </div>
     </div>
   `;
@@ -434,6 +474,59 @@ async function deleteOrder(orderId) {
   } catch (error) {
     console.error('Delete order error:', error);
     showAlert('Delete Failed', 'Error deleting order: ' + error.message, 'danger');
+  }
+}
+
+async function purgeAllTestOrders() {
+  const testOrders = allOrders.filter(o => o.is_test === true);
+  if (testOrders.length === 0) {
+    showToast('No test orders found to clean up.', 'info');
+    return;
+  }
+
+  const isConfirmed = await showConfirm(
+    'Purge All Test Orders',
+    `Are you sure you want to permanently delete all ${testOrders.length} test order(s)? Real customer orders will NOT be affected.`
+  );
+
+  if (!isConfirmed) return;
+
+  const purgeBtn = document.getElementById('purge-test-btn');
+  if (purgeBtn) {
+    purgeBtn.disabled = true;
+    purgeBtn.textContent = 'Purging...';
+  }
+
+  try {
+    const supabaseClient = createSupabaseClient();
+    
+    // First attempt using dedicated RPC function
+    const { data: rpcDeleted, error: rpcError } = await supabaseClient
+      .rpc('delete_all_test_orders');
+
+    if (rpcError) {
+      // Fallback: Delete rows directly via table delete
+      const { error: directError } = await supabaseClient
+        .from('orders')
+        .delete()
+        .eq('is_test', true);
+
+      if (directError) throw directError;
+    }
+
+    showToast(`Successfully deleted ${testOrders.length} test order(s)!`, 'success');
+    await loadOrders();
+  } catch (err) {
+    console.error('Error purging test orders:', err);
+    showAlert('Purge Failed', 'Error removing test orders: ' + err.message, 'danger');
+  } finally {
+    if (purgeBtn) {
+      purgeBtn.disabled = false;
+      purgeBtn.innerHTML = `
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        Purge Test Orders
+      `;
+    }
   }
 }
 

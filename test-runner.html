@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gurudev Books - Automated Test Suite & Diagnostics</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .runner-container {
+      max-width: 1050px;
+      margin: 90px auto 40px;
+      padding: 0 1.5rem;
+    }
+    .runner-header {
+      background: white;
+      padding: 1.75rem 2rem;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid #E7E5E4;
+      margin-bottom: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1.25rem;
+    }
+    .runner-title h1 {
+      font-size: 1.75rem;
+      color: var(--maroon);
+      margin-bottom: 0.25rem;
+    }
+    .runner-title p {
+      color: var(--text-secondary);
+      font-size: 0.92rem;
+      margin: 0;
+    }
+    .runner-actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .btn-run {
+      background: var(--maroon);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.4rem;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: var(--transition-fast);
+      box-shadow: var(--shadow-sm);
+    }
+    .btn-run:hover {
+      background: var(--maroon-light);
+      transform: translateY(-1px);
+    }
+    .btn-outline {
+      background: white;
+      color: var(--text);
+      border: 1.5px solid #E7E5E4;
+      padding: 0.75rem 1.2rem;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: var(--transition-fast);
+    }
+    .btn-outline:hover {
+      border-color: var(--maroon);
+      color: var(--maroon);
+    }
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .stat-box {
+      background: white;
+      padding: 1.25rem 1.5rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid #E7E5E4;
+      box-shadow: var(--shadow-sm);
+    }
+    .stat-box-val {
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1;
+      font-family: 'Lora', serif;
+    }
+    .stat-box-lbl {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+      margin-top: 0.35rem;
+      font-weight: 600;
+    }
+    .stat-passed .stat-box-val { color: var(--success); }
+    .stat-failed .stat-box-val { color: var(--danger); }
+    .stat-total .stat-box-val { color: var(--maroon); }
+    .stat-time .stat-box-val { color: var(--saffron-dark); }
+
+    .suite-card {
+      background: white;
+      border-radius: var(--radius);
+      border: 1px solid #E7E5E4;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 1.25rem;
+      overflow: hidden;
+    }
+    .suite-header {
+      background: #FAFAF9;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid #E7E5E4;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .suite-title {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--maroon);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .suite-counts {
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 0.2rem 0.6rem;
+      border-radius: 12px;
+      background: white;
+      border: 1px solid #E7E5E4;
+    }
+    .test-list {
+      divide-y: 1px solid #F5F5F4;
+    }
+    .test-item {
+      padding: 0.85rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #F5F5F4;
+      font-size: 0.92rem;
+    }
+    .test-item:last-child {
+      border-bottom: none;
+    }
+    .test-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex: 1;
+    }
+    .test-status-icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    .status-passed {
+      background: var(--success-light);
+      color: var(--success);
+    }
+    .status-failed {
+      background: var(--danger-light);
+      color: var(--danger);
+    }
+    .status-pending {
+      background: #F5F5F4;
+      color: var(--text-muted);
+    }
+    .test-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-family: monospace;
+    }
+    .test-error-trace {
+      margin-top: 0.5rem;
+      padding: 0.6rem 0.85rem;
+      background: var(--danger-light);
+      color: var(--danger);
+      border-radius: var(--radius-sm);
+      font-family: monospace;
+      font-size: 0.82rem;
+      white-space: pre-wrap;
+    }
+    .sandbox-card {
+      background: #FFFDF7;
+      border: 1.5px dashed var(--saffron);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-top: 2rem;
+    }
+    .sandbox-card h2 {
+      font-size: 1.25rem;
+      color: var(--maroon);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .sandbox-card p {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+    .sandbox-actions {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+<body>
+  <header id="main-header" style="background:var(--maroon);">
+    <div class="header-content">
+      <a href="index.html" class="logo" title="Gurudev Books">
+        <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M38 15 L38 60 C38 68, 42 72, 50 72 C58 72, 62 68, 62 60 L62 15" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="M44 15 L44 58 C44 62, 46 64, 50 64 C54 64, 56 62, 56 58 L56 15" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.8" />
+          <path d="M50 72 C46 76, 43 83, 50 90 C57 83, 54 76, 50 72 Z" fill="currentColor" />
+        </svg>
+      </a>
+      <nav>
+        <a href="index.html" class="nav-link">Books</a>
+        <a href="track.html" class="nav-link">Track Order</a>
+        <a href="admin.html" class="nav-link">Admin Dashboard</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="runner-container">
+    <div class="runner-header">
+      <div class="runner-title">
+        <h1>Testing Framework & Diagnostics</h1>
+        <p>Automated verification for Courier Slabs, Data Isolation, XSS Protection & Sandbox Safety</p>
+      </div>
+      <div class="runner-actions">
+        <button class="btn-run" id="btn-run-all" onclick="executeAllBrowserTests()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          Run All Tests
+        </button>
+        <a href="checkout.html?test=1" class="btn-outline" target="_blank">
+          🧪 Open Test Checkout
+        </a>
+        <a href="admin.html" class="btn-outline">
+          📦 View Admin Dashboard
+        </a>
+      </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="stats-row">
+      <div class="stat-box stat-total">
+        <div class="stat-box-val" id="stat-total">0</div>
+        <div class="stat-box-lbl">Total Tests</div>
+      </div>
+      <div class="stat-box stat-passed">
+        <div class="stat-box-val" id="stat-passed">0</div>
+        <div class="stat-box-lbl">Passed</div>
+      </div>
+      <div class="stat-box stat-failed">
+        <div class="stat-box-val" id="stat-failed">0</div>
+        <div class="stat-box-lbl">Failed</div>
+      </div>
+      <div class="stat-box stat-time">
+        <div class="stat-box-val" id="stat-time">0 ms</div>
+        <div class="stat-box-lbl">Execution Time</div>
+      </div>
+    </div>
+
+    <!-- Test Suites Output -->
+    <div id="suites-container"></div>
+
+    <!-- Live Sandbox Smoke Test Section -->
+    <div class="sandbox-card">
+      <h2><span>🧪</span> Live Supabase Sandbox & Isolation Smoke Test</h2>
+      <p>
+        Perform a non-destructive live verification against your deployed Supabase instance.
+        This verifies database connectivity, read permissions on books, and confirms that
+        test order submissions do NOT decrement live inventory or contaminate customer views.
+      </p>
+      <div class="sandbox-actions">
+        <button class="btn-run" onclick="runLiveSmokeTest()" id="btn-smoke-test">
+          Run Live Database Check
+        </button>
+      </div>
+      <div id="smoke-results" style="margin-top:1rem;display:none;padding:1rem;background:white;border-radius:var(--radius-sm);border:1px solid #E7E5E4;font-size:0.9rem;"></div>
+    </div>
+  </main>
+
+  <footer style="margin-top:3rem;">
+    <p>&copy; 2026 Gurudev Books Store. All rights reserved. | <a href="admin.html">Admin Login</a></p>
+  </footer>
+
+  <!-- Core App Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="js/security.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/books.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/checkout.js"></script>
+
+  <!-- Browser Test Runner Framework -->
+  <script src="tests/test-utils.js"></script>
+
+  <!-- Load Test Files in Browser -->
+  <script src="tests/shipping.test.js"></script>
+  <script src="tests/security.test.js"></script>
+  <script src="tests/cart.test.js"></script>
+  <script src="tests/isolation.test.js"></script>
+
+  <script>
+    async function executeAllBrowserTests() {
+      const container = document.getElementById('suites-container');
+      container.innerHTML = '<div class="spinner"></div>';
+
+      let total = 0;
+      let passed = 0;
+      let failed = 0;
+      const startTime = performance.now();
+
+      const suites = window.TestFramework.suites;
+      const resultsHtml = [];
+
+      for (const suite of suites) {
+        let suitePassed = 0;
+        let suiteFailed = 0;
+        const testRows = [];
+
+        for (const t of suite.tests) {
+          total++;
+          const tStart = performance.now();
+          let errMessage = null;
+
+          try {
+            await t.fn();
+            passed++;
+            suitePassed++;
+          } catch (e) {
+            failed++;
+            suiteFailed++;
+            errMessage = e.message;
+          }
+          const tDuration = Math.round(performance.now() - tStart);
+
+          testRows.push(`
+            <div class="test-item">
+              <div class="test-info">
+                <span class="test-status-icon ${errMessage ? 'status-failed' : 'status-passed'}">
+                  ${errMessage ? '✕' : '✓'}
+                </span>
+                <div>
+                  <strong>${escapeHtml(t.name)}</strong>
+                  ${errMessage ? `<div class="test-error-trace">${escapeHtml(errMessage)}</div>` : ''}
+                </div>
+              </div>
+              <span class="test-meta">${tDuration}ms</span>
+            </div>
+          `);
+        }
+
+        resultsHtml.push(`
+          <div class="suite-card">
+            <div class="suite-header">
+              <span class="suite-title">
+                <span>📦</span> ${escapeHtml(suite.name)}
+              </span>
+              <span class="suite-counts" style="color:${suiteFailed > 0 ? 'var(--danger)' : 'var(--success)'};">
+                ${suitePassed}/${suite.tests.length} Passed
+              </span>
+            </div>
+            <div class="test-list">
+              ${testRows.join('')}
+            </div>
+          </div>
+        `);
+      }
+
+      const totalTime = Math.round(performance.now() - startTime);
+
+      document.getElementById('stat-total').textContent = total;
+      document.getElementById('stat-passed').textContent = passed;
+      document.getElementById('stat-failed').textContent = failed;
+      document.getElementById('stat-time').textContent = `${totalTime} ms`;
+
+      container.innerHTML = resultsHtml.join('');
+    }
+
+    async function runLiveSmokeTest() {
+      const out = document.getElementById('smoke-results');
+      out.style.display = 'block';
+      out.innerHTML = '<div class="spinner" style="width:24px;height:24px;"></div> Connecting to Supabase live instance...';
+
+      try {
+        const client = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+        
+        // 1. Check books read
+        const { data: books, error: bookErr } = await client.from('books').select('id, title, stock_quantity').limit(3);
+        if (bookErr) throw new Error('Books read query failed: ' + bookErr.message);
+
+        // 2. Check if is_test column exists in orders schema
+        const { data: sampleOrder, error: orderErr } = await client.from('orders').select('id, is_test').limit(1);
+
+        const hasTestColumn = !orderErr;
+
+        out.innerHTML = `
+          <div style="color:var(--success);font-weight:700;margin-bottom:0.5rem;">
+            ✓ Live Supabase Connection Successful!
+          </div>
+          <ul style="padding-left:1.25rem;line-height:1.7;color:var(--text);">
+            <li><strong>Database URL:</strong> <code>${escapeHtml(CONFIG.SUPABASE_URL)}</code></li>
+            <li><strong>Books Catalog:</strong> Successfully connected, read ${books.length} sample books from live database.</li>
+            <li><strong>Test Isolation Schema:</strong> ${hasTestColumn ? '<span style="color:var(--success);font-weight:600;">✓ `is_test` column detected in orders table</span>' : '<span style="color:var(--warning);font-weight:600;">⚠️ `is_test` column not yet detected. Run `MIGRATION_TESTING_FRAMEWORK.sql` in Supabase SQL editor.</span>'}</li>
+            <li><strong>Active Environment:</strong> <code>${escapeHtml(CONFIG.ENVIRONMENT)}</code> (Test Mode: <code>${CONFIG.isTestMode()}</code>)</li>
+          </ul>
+        `;
+      } catch (err) {
+        out.innerHTML = `<div style="color:var(--danger);font-weight:700;">✕ Live Check Failed: ${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    async function promptForRunnerAuth() {
+      if (typeof Swal === 'undefined') return;
+      const { value: passcode } = await Swal.fire({
+        title: '🔒 Store Admin Passcode',
+        text: 'This testing framework is restricted on live deployments. Enter the Admin Test Passcode to continue:',
+        input: 'password',
+        inputPlaceholder: 'Enter test passcode',
+        showCancelButton: true,
+        confirmButtonColor: '#4A1525',
+        confirmButtonText: 'Unlock Diagnostics'
+      });
+
+      if (passcode === CONFIG.TEST_SECRET_KEY) {
+        localStorage.setItem('gurudev_test_key', passcode);
+        location.reload();
+      } else if (passcode) {
+        Swal.fire('Access Denied', 'Invalid passcode entered.', 'error');
+      }
+    }
+
+    function initRunner() {
+      if (typeof CONFIG !== 'undefined' && !CONFIG.isAuthorizedForTestMode()) {
+        const container = document.getElementById('suites-container');
+        container.innerHTML = `
+          <div style="background:white;padding:3.5rem 2rem;text-align:center;border-radius:var(--radius);border:1px solid #E7E5E4;box-shadow:var(--shadow-sm);">
+            <div style="font-size:3.5rem;margin-bottom:1rem;">🔒</div>
+            <h2 style="color:var(--maroon);font-family:'Lora',serif;margin-bottom:0.75rem;">Administrator Access Restricted</h2>
+            <p style="color:var(--text-secondary);max-width:540px;margin:0 auto 1.5rem;line-height:1.6;font-size:0.95rem;">
+              Internal test suites and live database diagnostics are locked on public deployments. Public access is disabled. Please log in with your Admin credentials to run diagnostics.
+            </p>
+            <div style="display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;">
+              <a href="admin.html" class="btn-run" style="text-decoration:none;">🔐 Go to Staff Login</a>
+            </div>
+          </div>
+        `;
+        return;
+      }
+      executeAllBrowserTests();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initRunner);
+    } else {
+      initRunner();
+    }
+  </script>
+</body>
+</html>

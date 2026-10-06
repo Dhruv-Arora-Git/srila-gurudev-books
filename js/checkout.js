@@ -10,6 +10,13 @@
  * 6. Dynamic UPI QR code generation and mobile-friendly 1-tap checkout.
  */
 
+// Provide access to CONFIG in Node.js test environment if not defined globally
+if (typeof CONFIG === 'undefined' && typeof require !== 'undefined') {
+  try {
+    global.CONFIG = require('./config');
+  } catch (e) {}
+}
+
 // Local storage cache key for pincode-to-location lookups
 const PINCODE_CACHE_KEY = 'gurudev_pincode_cache_v1';
 
@@ -526,7 +533,7 @@ async function submitOrder(event) {
   const city = document.getElementById('customer-city')?.value.trim();
   const state = document.getElementById('customer-state')?.value.trim();
   const pincode = document.getElementById('customer-pincode')?.value.trim();
-  const paymentProof = document.getElementById('payment-proof')?.files[0];
+  const paymentProof = mockProofFile || document.getElementById('payment-proof')?.files[0];
 
   if (!name || !phone || !street || !city || !state || !pincode) {
     showAlert('Missing Details', 'Please fill in all delivery address details.', 'warning');
@@ -580,16 +587,44 @@ async function submitOrder(event) {
       };
     });
 
-    // 3. Call database atomic transaction RPC
-    const { data: orderId, error: orderError } = await supabaseClient
-      .rpc('create_order_with_items', {
-        cust_name: name,
-        cust_phone: phone,
-        cust_address: address,
-        total_amt: total,
-        proof_url: fileName,
-        items: items
-      });
+    // 3. Call database atomic transaction RPC with test isolation flag & security key
+    const isTestOrder = typeof CONFIG !== 'undefined' && CONFIG.isTestMode && CONFIG.isTestMode();
+    const testSecret = isBrowser ? (localStorage.getItem('gurudev_test_key') || new URLSearchParams(window.location.search).get('test_key')) : null;
+    let orderId = null;
+    let orderError = null;
+
+    const rpcPayload = {
+      cust_name: isTestOrder ? `[TEST] ${name}` : name,
+      cust_phone: phone,
+      cust_address: address,
+      total_amt: total,
+      proof_url: fileName,
+      items: items,
+      is_test: isTestOrder,
+      test_secret: testSecret
+    };
+
+    const rpcResponse = await supabaseClient.rpc('create_order_with_items', rpcPayload);
+    
+    if (rpcResponse.error && rpcResponse.error.message && (rpcResponse.error.message.includes('is_test') || rpcResponse.error.message.includes('argument') || rpcResponse.error.message.includes('function'))) {
+      // Fallback for database without migrated is_test argument
+      delete rpcPayload.is_test;
+      const fallbackResponse = await supabaseClient.rpc('create_order_with_items', rpcPayload);
+      orderId = fallbackResponse.data;
+      orderError = fallbackResponse.error;
+      
+      if (!orderError && isTestOrder && orderId) {
+        // Tag test order in orders table directly
+        try {
+          await supabaseClient.from('orders').update({ is_test: true }).eq('id', orderId);
+        } catch (e) {
+          console.warn('Could not set is_test flag on order:', e);
+        }
+      }
+    } else {
+      orderId = rpcResponse.data;
+      orderError = rpcResponse.error;
+    }
 
     if (orderError) {
       if (orderError.message && orderError.message.includes('Insufficient stock')) {
@@ -651,9 +686,10 @@ async function sendOrderEmailNotification({ orderId, name, phone, address, total
     return `${book ? book.title : 'Book'} x ${item.quantity} (Rs. ${item.price * item.quantity})`;
   }).join(', ');
 
+  const isTest = typeof CONFIG !== 'undefined' && CONFIG.isTestMode && CONFIG.isTestMode();
   const payload = {
     access_key: CONFIG.WEB3FORMS_ACCESS_KEY,
-    subject: `📚 New Order Placed: #${orderId}`,
+    subject: isTest ? `[🧪 TEST ORDER - DO NOT DISPATCH] Gurudev Books Order #${orderId}` : `📚 New Order Placed: #${orderId}`,
     from_name: "Gurudev Books Store",
     order_id: orderId,
     customer_name: name,
@@ -663,7 +699,8 @@ async function sendOrderEmailNotification({ orderId, name, phone, address, total
     chargeable_weight: `${totalWeight} g (India Post Pune)`,
     shipping_charge: `Rs. ${shippingCharge}`,
     total_amount: `Rs. ${total}`,
-    order_items: itemsListFormatted
+    order_items: itemsListFormatted,
+    is_test_order: isTest ? "YES - TEST SANDBOX ORDER" : "NO"
   };
 
   try {
@@ -685,12 +722,49 @@ async function sendOrderEmailNotification({ orderId, name, phone, address, total
 // 6. Page Initialization & Event Listeners
 // ============================================
 
-document.addEventListener('DOMContentLoaded', async () => {
-  const cart = getCart();
-  if (cart.length === 0) {
-    window.location.href = 'cart.html';
-    return;
-  }
+if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', async () => {
+    // Only execute checkout page lifecycle if currently on checkout page
+    if (typeof window !== 'undefined' && !window.location.pathname.includes('checkout')) {
+      return;
+    }
+
+    // Secure Test Mode Authorization Check: Strictly require Admin Login
+    const hasTestParam = new URLSearchParams(window.location.search).get('test') === '1' ||
+                          new URLSearchParams(window.location.search).get('test') === 'true' ||
+                          new URLSearchParams(window.location.search).get('test_mode') === 'true';
+
+    if (hasTestParam) {
+      if (CONFIG.isAuthorizedForTestMode()) {
+        const banner = document.getElementById('test-mode-banner');
+        if (banner) banner.style.display = 'flex';
+        localStorage.setItem('gurudev_test_mode', 'true');
+      } else {
+        // Zero Public Access: Public visitor attempted to access test mode without admin login!
+        showAdminLoginRequiredNotice();
+        return;
+      }
+    } else if (CONFIG.isTestMode()) {
+      const banner = document.getElementById('test-mode-banner');
+      if (banner) banner.style.display = 'flex';
+    }
+
+    let cart = getCart();
+    if (cart.length === 0) {
+      if (CONFIG.isTestMode()) {
+        // Auto-load sample books for authorized admin in test mode so checkout can proceed immediately
+        if (!BOOKS || BOOKS.length === 0) {
+          await fetchBooks();
+        }
+        const catalog = typeof getCatalog === 'function' ? getCatalog() : (BOOKS || []);
+        const sampleId = (catalog && catalog.length > 0) ? catalog[0].id : 1;
+        saveCart([{ bookId: sampleId, quantity: 1 }]);
+        cart = getCart();
+      } else {
+        window.location.href = 'cart.html';
+        return;
+      }
+    }
 
   // Load catalog books if not loaded
   if (!BOOKS || BOOKS.length === 0) {
@@ -789,6 +863,110 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (proofInput) {
     proofInput.addEventListener('change', handleProofFileChange);
   }
-});
+  });
+}
+
+let mockProofFile = null;
+
+function prefillTestData() {
+  const nameEl = document.getElementById('customer-name');
+  const phoneEl = document.getElementById('customer-phone');
+  const streetEl = document.getElementById('customer-street');
+  const cityEl = document.getElementById('customer-city');
+  const stateEl = document.getElementById('customer-state');
+  const pinEl = document.getElementById('customer-pincode');
+
+  if (nameEl) nameEl.value = 'Test Devotee';
+  if (phoneEl) phoneEl.value = '9876543210';
+  if (streetEl) streetEl.value = '108 Bhakti Marg, ISKCON Pune';
+  if (cityEl) cityEl.value = 'Pune';
+  if (stateEl) stateEl.value = 'Maharashtra';
+  if (pinEl) pinEl.value = '411048';
+
+  // Create a synthetic image for payment proof so tester doesn't need to screenshot
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = 240;
+    canvas.height = 160;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#FEF3C7';
+    ctx.fillRect(0, 0, 240, 160);
+    ctx.fillStyle = '#92400E';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.fillText('TEST PAYMENT PROOF', 20, 80);
+    ctx.font = '12px sans-serif';
+    ctx.fillText('Sandbox Verification', 20, 105);
+
+    canvas.toBlob(blob => {
+      if (blob) {
+        mockProofFile = new File([blob], 'test-proof-sample.png', { type: 'image/png' });
+        const idle = document.getElementById('dropzone-idle');
+        const preview = document.getElementById('dropzone-preview');
+        const previewImg = document.getElementById('preview-image');
+        if (previewImg) previewImg.src = canvas.toDataURL();
+        if (preview) preview.style.display = 'block';
+        if (idle) idle.style.display = 'none';
+      }
+    }, 'image/png');
+  } catch (err) {
+    console.warn('Canvas blob creation failed:', err);
+  }
+
+  updateCheckoutCalculations();
+  if (typeof showToast === 'function') {
+    showToast('Devotee test address pre-filled!', 'success');
+  }
+}
+
+function exitTestMode() {
+  if (typeof CONFIG !== 'undefined' && CONFIG.setTestMode) {
+    CONFIG.setTestMode(false);
+  }
+  const banner = document.getElementById('test-mode-banner');
+  if (banner) banner.style.display = 'none';
+  if (typeof showToast === 'function') {
+    showToast('Exited Test Mode.', 'info');
+  }
+}
+
+function showAdminLoginRequiredNotice() {
+  // Strip ?test=1 from the address bar immediately
+  if (isBrowser && window.history && window.history.replaceState) {
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('test');
+      url.searchParams.delete('test_mode');
+      window.history.replaceState({}, document.title, url.pathname + (url.search ? url.search : ''));
+    } catch (e) {}
+  }
+
+  if (typeof Swal !== 'undefined') {
+    Swal.fire({
+      title: '🔒 Admin Login Required',
+      text: 'Test Mode is restricted exclusively to store administrators. Public access is disabled. Please log in with your Admin credentials to use Test Mode.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#4A1525',
+      cancelButtonColor: '#78716C',
+      confirmButtonText: 'Go to Staff Login',
+      cancelButtonText: 'Continue as Customer'
+    }).then(result => {
+      if (result.isConfirmed) {
+        window.location.href = 'admin.html';
+      }
+    });
+  }
+}
+
+// Node.js module export for testing framework
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    getShippingCharge,
+    evaluateDestinationZone,
+    calculateCartWeights,
+    PINCODE_PREFIX_STATE_MAP
+  };
+}
+
 
 

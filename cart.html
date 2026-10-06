@@ -25,10 +25,7 @@
           <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
           Track Order
         </a>
-        <a href="admin.html" class="nav-link">
-          <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-          Admin
-        </a>
+
         <a href="cart.html" class="nav-link">
           <div class="cart-icon-wrapper">
             <svg class="nav-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
@@ -44,11 +41,27 @@
     <div class="page-title">
       <h1>My Shopping Cart</h1>
     </div>
+
+    <!-- Test Mode Notice Banner (dynamically shown when ?test=1 or localStorage) -->
+    <div id="test-mode-banner" style="display:none;width:100%;margin-bottom:1.5rem;padding:1rem 1.25rem;background:#FEF3C7;border:2px dashed #D97706;border-radius:var(--radius);color:#92400E;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;">
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <span style="font-size:1.5rem;">🧪</span>
+        <div>
+          <strong style="display:block;font-size:0.95rem;">Test Mode Active</strong>
+          <span style="font-size:0.85rem;color:#78350F;">Orders placed in test mode are tagged as test orders and will NOT affect physical inventory or revenue accounting.</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:0.5rem;align-items:center;">
+        <button type="button" onclick="addSampleBooksAndRefresh()" style="background:#D97706;color:white;border:none;padding:0.45rem 0.9rem;border-radius:var(--radius-sm);font-weight:600;font-size:0.82rem;cursor:pointer;">🧪 Add Sample Books</button>
+        <button type="button" onclick="exitTestMode()" style="background:white;color:#92400E;border:1px solid #D97706;padding:0.45rem 0.9rem;border-radius:var(--radius-sm);font-weight:600;font-size:0.82rem;cursor:pointer;">Exit Test Mode</button>
+      </div>
+    </div>
+
     <div id="cart-container" class="cart-container-box"></div>
   </main>
 
   <footer>
-    <p>&copy; 2026 Gurudev Books Store. All rights reserved. | <a href="track.html">Track Your Order</a></p>
+    <p>&copy; 2026 Gurudev Books Store. All rights reserved. | <a href="track.html">Track Your Order</a> | <a href="admin.html" style="opacity:0.65;font-size:0.9em;">Staff Login</a></p>
   </footer>
 
   <a href="https://wa.me/919403390876" target="_blank" class="whatsapp-float" title="Chat on WhatsApp">
@@ -57,15 +70,64 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="js/security.js"></script>
   <script src="js/config.js"></script>
   <script src="js/books.js"></script>
   <script src="js/cart.js"></script>
   <script>
+    function checkTestMode() {
+      const hasTestParam = new URLSearchParams(window.location.search).get('test') === '1' ||
+                            new URLSearchParams(window.location.search).get('test') === 'true' ||
+                            new URLSearchParams(window.location.search).get('test_mode') === 'true';
+
+      const banner = document.getElementById('test-mode-banner');
+
+      if (hasTestParam) {
+        if (typeof CONFIG !== 'undefined' && CONFIG.isAuthorizedForTestMode && CONFIG.isAuthorizedForTestMode()) {
+          if (banner) banner.style.display = 'flex';
+          localStorage.setItem('gurudev_test_mode', 'true');
+        } else {
+          // Zero Public Access: Public visitor attempted to access test mode without admin login!
+          if (typeof CONFIG !== 'undefined' && CONFIG.showAdminLoginRequiredNotice) {
+            CONFIG.showAdminLoginRequiredNotice();
+          }
+          return;
+        }
+      } else if (typeof CONFIG !== 'undefined' && CONFIG.isTestMode && CONFIG.isTestMode()) {
+        if (banner) banner.style.display = 'flex';
+      }
+    }
+
     function renderCart() {
       const cart = getCart();
       const container = document.getElementById('cart-container');
+      const isTest = typeof CONFIG !== 'undefined' && CONFIG.isTestMode && CONFIG.isTestMode();
 
       if (cart.length === 0) {
+        if (isTest) {
+          container.innerHTML = `
+            <div class="empty-cart" style="padding: 3rem 1.5rem; text-align: center; border: 2px dashed #D97706; border-radius: var(--radius); background: #FFFBEB;">
+              <div class="empty-cart-icon" style="margin-bottom: 1rem; display: flex; justify-content: center; font-size: 3rem;">
+                🧪
+              </div>
+              <h2 style="font-family:'Lora',serif;margin-bottom:0.5rem;color:#92400E;">Your Test Cart is Empty</h2>
+              <p style="color: #78350F; margin-bottom: 1.5rem; max-width: 480px; margin-left: auto; margin-right: auto; line-height: 1.5;">
+                You are in <strong>Test Mode</strong>. Click the button below to instantly load sample books into your cart and test the complete India Post calculation & checkout flow!
+              </p>
+              <div style="display:flex; gap:0.75rem; justify-content:center; flex-wrap:wrap;">
+                <button type="button" onclick="addSampleBooksAndRefresh()" style="background:linear-gradient(135deg, #D97706, #B45309); color:white; border:none; padding:0.85rem 1.75rem; border-radius:var(--radius); font-weight:700; font-size:0.95rem; cursor:pointer; box-shadow:0 4px 12px rgba(217,119,6,0.3); display:inline-flex; align-items:center; gap:0.5rem;">
+                  🧪 Add Sample Books to Cart & Test
+                </button>
+                <a href="index.html" style="text-decoration:none; display: inline-flex; align-items:center; padding:0.85rem 1.25rem; border:1px solid #D97706; border-radius:var(--radius); color:#92400E; font-weight:600; font-size:0.9rem; background:white;">Browse Store</a>
+              </div>
+            </div>
+          `;
+          container.style.border = 'none';
+          container.style.boxShadow = 'none';
+          container.style.background = 'transparent';
+          return;
+        }
+
         container.innerHTML = `
           <div class="empty-cart" style="padding: 4rem 1.5rem; text-align: center;">
             <div class="empty-cart-icon" style="margin-bottom: 1.25rem; display: flex; justify-content: center; color: var(--maroon);">
@@ -140,6 +202,10 @@
       const packingWeight = CONFIG.PACKING_WEIGHT_GRAMS || 20;
       const totalWeight = totalBookWeight + packingWeight;
 
+      const checkoutUrl = isTest ? 'checkout.html?test=1' : 'checkout.html';
+      const checkoutBtnText = isTest ? 'Proceed to Test Checkout &rarr;' : 'Proceed to Checkout &rarr;';
+      const checkoutBtnStyle = isTest ? 'style="background:linear-gradient(135deg, #D97706, #B45309);"' : '';
+
       const summaryHtml = `
         <div class="bookwagon-summary">
           <div class="summary-left-col">
@@ -148,7 +214,7 @@
             <p class="delivery-estimate-text" style="display: flex; align-items: center; gap: 0.4rem; margin-top:0.4rem;">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: inline-block; vertical-align: middle;">
                 <rect x="1" y="3" width="15" height="13"></rect>
-                <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                <polygon points="16 8 20 8 23 11 23 16 16 16 8"></polygon>
                 <circle cx="5.5" cy="18.5" r="2.5"></circle>
                 <circle cx="18.5" cy="18.5" r="2.5"></circle>
               </svg>
@@ -161,7 +227,7 @@
               <span style="font-size:0.86rem;color:var(--saffron-dark);font-weight:600;">Calculated at checkout</span>
             </div>
             <div class="summary-line total-payable-line"><span>Cart Subtotal</span><span>Rs. ${subtotal}</span></div>
-            <a href="checkout.html" style="text-decoration:none;"><button class="bookwagon-checkout-btn">Proceed to Checkout &rarr;</button></a>
+            <a href="${checkoutUrl}" style="text-decoration:none;"><button class="bookwagon-checkout-btn" ${checkoutBtnStyle}>${checkoutBtnText}</button></a>
           </div>
         </div>
       `;
@@ -172,6 +238,42 @@
         </div>
         ${summaryHtml}
       `;
+    }
+
+    function addSampleBooksAndRefresh() {
+      const catalog = typeof getCatalog === 'function' ? getCatalog() : (BOOKS || []);
+      const item1 = (catalog && catalog.length > 0) ? catalog[0].id : 1;
+      const item2 = (catalog && catalog.length > 1) ? catalog[1].id : 2;
+      const sampleItems = [
+        { bookId: item1, quantity: 1 },
+        { bookId: item2, quantity: 1 }
+      ];
+      saveCart(sampleItems);
+      updateCartBadge();
+      renderCart();
+      if (typeof showToast === 'function') {
+        showToast('Sample books added to cart! Ready for test checkout.', 'success');
+      }
+    }
+
+    function exitTestMode() {
+      if (typeof CONFIG !== 'undefined' && CONFIG.setTestMode) {
+        CONFIG.setTestMode(false);
+      }
+      const banner = document.getElementById('test-mode-banner');
+      if (banner) banner.style.display = 'none';
+      if (window.history && window.history.replaceState) {
+        try {
+          const url = new URL(window.location.href);
+          url.searchParams.delete('test');
+          url.searchParams.delete('test_mode');
+          window.history.replaceState({}, document.title, url.pathname + (url.search ? url.search : ''));
+        } catch (e) {}
+      }
+      renderCart();
+      if (typeof showToast === 'function') {
+        showToast('Exited Test Mode.', 'info');
+      }
     }
 
     function updateQty(bookId, delta) {
@@ -193,6 +295,7 @@
     async function initCart() {
       const container = document.getElementById('cart-container');
       container.innerHTML = '<div class="spinner"></div>';
+      checkTestMode();
       await fetchBooks();
       renderCart();
     }

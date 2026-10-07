@@ -1,12 +1,27 @@
 # OS Files
 .DS_Store
-*/.DS_Store
+**/.DS_Store
+._*
 Thumbs.db
 
 # Dependencies
 node_modules/
 
-# Test / Debug Artifacts & Screenshots
+# Logs & Temporary Files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test / Debug Artifacts & Local Backups
 *-screenshot.png
 scratch/
 .tempmediaStorage/
+*.tmp
+*-original.png
+
+# IDE / Editor Configuration
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace

@@ -1,0 +1,15 @@
+# robots.txt for Gurudev Books Online Store
+User-agent: *
+Allow: /
+Allow: /index.html
+Allow: /cart.html
+Allow: /checkout.html
+Allow: /track.html
+Allow: /css/
+Allow: /js/
+Allow: /assets/
+
+# Disallow administrative dashboard and diagnostic runner from search engines
+Disallow: /admin.html
+Disallow: /test-runner.html
+Disallow: /tests/

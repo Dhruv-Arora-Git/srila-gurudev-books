@@ -436,7 +436,7 @@ function updateDynamicPayment(totalAmount) {
 
   if (qrImg) {
     // Official Bank of Baroda UPI QR code image
-    qrImg.src = 'assets/qr-code.png';
+    qrImg.src = 'assets/images/qr-code.png';
   }
 
   if (mobileBtn) {

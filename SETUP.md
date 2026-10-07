@@ -53,7 +53,7 @@ Place book cover images in `assets/images/` folder.
 
 ### 6. Add UPI QR Code
 
-1. Replace `assets/qr-code.png` with your actual UPI QR code image
+1. Replace `assets/images/qr-code.png` with your actual UPI QR code image
 2. Update `js/config.js`:
    - `UPI_ID` with your actual UPI ID (e.g., `yourname@paytm`)
    - `UPI_NAME` with your business name
@@ -130,23 +130,51 @@ Your order #{{1}} has been delivered. Enjoy reading!
 
 ```
 Gurudev books/
-├── index.html              # Book catalog
-├── cart.html               # Shopping cart
-├── checkout.html           # Checkout + payment
-├── track.html              # Order tracking
-├── admin.html              # Admin dashboard
+├── index.html                   # Public storefront & book catalog
+├── cart.html                    # Shopping cart
+├── checkout.html                # Dynamic courier calculation & UPI checkout
+├── track.html                   # Public order status tracking
+├── admin.html                   # Protected administrative dashboard
+├── test-runner.html             # Diagnostic runner & live database checks
+├── robots.txt                   # Search crawler directives (protects admin & tests)
+├── site.webmanifest             # PWA metadata & mobile homescreen configuration
+├── favicon.ico                  # Root multi-resolution favicon
+├── apple-touch-icon.png         # Root Apple touch icon (180x180)
+├── favicon.png                  # Root standard favicon (64x64)
 ├── css/
-│   └── style.css           # All styles + animations
+│   └── style.css                # Centralized responsive design system & animations
 ├── js/
-│   ├── config.js           # Configuration (EDIT THIS)
-│   ├── books.js            # Book data (EDIT THIS)
-│   ├── cart.js             # Cart logic
-│   ├── checkout.js         # Order submission
-│   ├── track.js            # Order tracking
-│   └── admin.js            # Admin dashboard
+│   ├── config.js                # Supabase credentials & courier tariff tables
+│   ├── books.js                 # Catalog database queries & stock management
+│   ├── cart.js                  # Cart state, badge counter, and validation
+│   ├── checkout.js              # India Post courier calculator & UPI intent
+│   ├── track.js                 # Sanitized public order status lookup
+│   ├── admin.js                 # Order dispatching, inventory editor & ledger
+│   └── security.js              # XSS sanitization, privacy masking & input validators
 ├── assets/
-│   ├── qr-code.png         # Replace with your QR
-│   └── images/             # Book cover images
-├── supabase-setup.sql      # Database migration
-└── SETUP.md                # This file
+│   └── images/                  # All store images, logos, QR codes & favicons
+│       ├── logo.png             # Official transparent medallion logo
+│       ├── qr-code.png          # UPI payment QR code (Surya Kanta Das)
+│       ├── favicon.ico          # Multi-resolution icon asset
+│       ├── favicon-32x32.png    # Standard 32px favicon
+│       ├── favicon-16x16.png    # Standard 16px favicon
+│       ├── apple-touch-icon.png # 180px Apple touch icon
+│       ├── icon-192.png         # PWA Android 192px icon
+│       ├── icon-512.png         # PWA Android 512px icon
+│       ├── gopal_jiu_fade.png   # Gopal Jiu deity hero asset
+│       ├── gurudev_with_prabhupada_2.png # Guru-parampara hero image
+│       ├── pink_lotus.png       # Lotus ornament
+│       └── signature.png        # Srila Gurudev divine signature
+├── tests/
+│   ├── run-tests.js             # Automated CLI test suite runner
+│   ├── test-utils.js            # Mock databases, state reset & assertion framework
+│   ├── shipping.test.js         # India Post slab calculation tests
+│   ├── cart.test.js             # Cart state, stock capping, and persistence tests
+│   ├── security.test.js         # XSS sanitization and privacy mask tests
+│   └── isolation.test.js        # Test order segregation and ledger protection tests
+├── MIGRATION_TESTING_FRAMEWORK.sql # SQL migration for sandbox testing schema
+├── RESET_AND_SETUP_SUPABASE.sql    # Clean reset & comprehensive schema initialization
+├── supabase-setup.sql           # Base database migration script
+├── TESTING_AND_SECURITY.md      # Testing architecture and security documentation
+└── SETUP.md                     # Deployment and configuration guide
 ```
